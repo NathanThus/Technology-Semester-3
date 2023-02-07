@@ -1,0 +1,93 @@
+@startuml Use Case Diagram
+title Use Case Diagram
+
+skinParam actorStyle awesome
+
+:Operator: --> (Lower water level)
+:Operator: --> (Raise water level)
+:Operator: --> (Cause emergency stop)
+:Operator: --> (Cease emergency)
+
+@enduml
+
+@startuml Class Diagram
+title Class Diagram
+
+Class ControlPanel
+{
+    {method} + SwitchToLow()
+    {method} + SwitchToHigh()
+    {method} + EmergencyStop()
+    {method} + CeaseEmergency()
+    {method} + AllowSailingIn()
+}
+
+Class Valve
+{
+    {method} + Open()
+    {method} + Close()
+}
+
+Class Gate
+{
+    {method} + Open()
+    {method} + Close()
+
+    {method} - OpenValve(ValveID id)
+    {method} - CloseValve(ValveID id)
+}
+
+Class TrafficLight
+{
+    {method} + Green()
+    {method} + Red()
+}
+
+Class WaterLevelSensor
+{
+    {method} + Measure() : WaterLevel
+}
+
+enum WaterLevel
+{
+    High
+    Above_High_Valve
+    Above_Middle_Valve
+    Above_Low_Water
+    Low
+}
+
+enum ValveID
+{
+    High
+    Middle
+    Low
+}
+
+ControlPanel --> Gate:  > 2 *
+Gate --> WaterLevelSensor
+WaterLevelSensor --> WaterLevel
+Gate --> ValveID
+Gate --> TrafficLight : > 2 * 
+Gate --> Valve : > 3 * 
+
+Note right of Gate : Has two Traffic lights:\nInnerTrafficLight & OuterTrafficLight
+@enduml
+
+@startuml StateDiagram
+title State Diagram
+
+state Emergency
+
+[*] -> Idle
+Emergency -> Idle : AlarmRecoveryIsPressed
+Idle -> Emergency : EmergencyButtonIsPressed
+Idle --> Start
+
+Start --> GoToLow : LowStartButtonIsPressed
+Start --> GoToHigh : HighStartButtonIsPressed
+
+GoToHigh --> Emergency : EmergencyButtonIsPressed
+GotoLow --> Emergency : EmergencyButtonIsPressed
+
+@enduml
