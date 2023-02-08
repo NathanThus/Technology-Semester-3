@@ -5,22 +5,22 @@
 
 enum PinType
 {
-    Input = 0,
-    Output = 1,
-    Alternate = 2,
-    Analog = 3
+    PINTYPE_Input = 0,
+    PINTYPE_Output = 1,
+    PINTYPE_Alternate = 2,
+    PINTYPE_Analog = 3
 };
 
 enum InterruptPinSegment
 {
-    A = 0,
-    B = 1,
-    C = 2,
-    D = 3,
-    E = 4,
-    F = 5,
-    G = 6,
-    H = 7
+    INTERRUPTPINSEGMENT_A = 0,
+    INTERRUPTPINSEGMENT_B = 1,
+    INTERRUPTPINSEGMENT_C = 2,
+    INTERRUPTPINSEGMENT_D = 3,
+    INTERRUPTPINSEGMENT_E = 4,
+    INTERRUPTPINSEGMENT_F = 5,
+    INTERRUPTPINSEGMENT_G = 6,
+    INTERRUPTPINSEGMENT_H = 7
 };
 
 class Pin
@@ -43,7 +43,7 @@ public:
     void Off();
     /// @brief Reads a singular bit.
     /// @return Returns true or false.
-    bool DigitalRead();
+    int DigitalRead();
     /// @brief Not implemented yet.
     /// @return -1, due to lack of implementation.
     int AnalogRead();
@@ -52,8 +52,5 @@ public:
     void ResetInterrupt();
 
 };
-
-/// @brief Enumeration for easy Pin definition.
-
 
 #endif 

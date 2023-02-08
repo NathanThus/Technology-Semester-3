@@ -12,7 +12,7 @@ void Pin::SetType(PinType type)
 
     switch (type)
     {
-        case Input:
+        case PINTYPE_Input:
             SetPullDown();
             break;
         
@@ -23,7 +23,7 @@ void Pin::SetType(PinType type)
 
 void Pin::SetPullDown()
 {
-    const int8_t PullDownBits = 0x1;
+    const int8_t PullDownBits = 0x2;
     GPIO->PUPDR = (GPIO->PUPDR & ~ PinID << PinID * 2) | (PullDownBits << PinID * 2);  
 }
 
@@ -42,7 +42,7 @@ void Pin::Off()
     GPIO->ODR &= ~1 << PinID;
 }
 
-bool Pin::DigitalRead()
+int Pin::DigitalRead()
 {
     return GPIO->IDR & (1 << PinID);
 }
