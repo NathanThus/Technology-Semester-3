@@ -9,22 +9,13 @@ Pin::Pin(GPIO_TypeDef *gpio, int pin)
 void Pin::SetType(PinType type)
 {
     GPIO->MODER = (GPIO->MODER & ~(PinID << PinID * 2)) | ((int)type << PinID * 2);
-
-    switch (type)
-    {
-        case PINTYPE_Input:
-            SetPullDown();
-            break;
-        
-        default:
-            break;
-    }
 }
 
-void Pin::SetPullDown()
+
+void Pin::SetType(PinType type, InternalResistor internalResistor)
 {
-    const int8_t PullDownBits = 0x2;
-    GPIO->PUPDR = (GPIO->PUPDR & ~ PinID << PinID * 2) | (PullDownBits << PinID * 2);  
+    GPIO->MODER = (GPIO->MODER & ~(PinID << PinID * 2)) | ((int)type << PinID * 2);
+    GPIO->PUPDR = (GPIO->PUPDR & ~(PinID << PinID * 2)) | ((int)internalResistor << PinID * 2);  
 }
 
 void Pin::Toggle()
