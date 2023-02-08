@@ -21,9 +21,10 @@ void Pin::SetType(PinType type)
     }
 }
 
-void SetPullDown()
+void Pin::SetPullDown()
 {
-
+    const int8_t PullDownBits = 0x1;
+    GPIO->PUPDR = (GPIO->PUPDR & ~ PinID << PinID * 2) | (PullDownBits << PinID * 2);  
 }
 
 void Pin::Toggle()
@@ -48,15 +49,21 @@ bool Pin::DigitalRead()
 
 int Pin::AnalogRead()
 {
-    return -1;
+    return -1; // To be added later. This will require some timing shenanigans.
 }
 
-void Pin::SetAsInterrupt(InterruptPinSegment segment)
+void Pin::SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type)
 {
-    SYSCFG->EXTICR[PinID] = (SYSCFG->EXTICR[PinID] & ~SYSCFG_EXTICR1_EXTI0) | ((int)segment << SYSCFG_EXTI);
-    SYSCFG->EXTICR[PinID] = (SYSCFG->EXTICR[PinID] & ~) | ((int)segment << SYSCFG_EXTI);
+    const int CrRegister = PinID / 4;
+    const int CrPos = (PinID % 4);
+    SYSCFG->EXTICR[CrRegister] = (SYSCFG->EXTICR[CrRegister] & ~ (0xF << CrPos)) | ((int)segment << CrPos * 4);
 
     EXTI->FTSR = 1 << PinID;
     EXTI->IMR = 1 << PinID;
-    NVIC_EnableIRQ(EXTI0_IRQn);
+    NVIC_EnableIRQ(irqn_type);
+}
+
+void Pin::ResetInterrupt()
+{
+    EXTI->PR = 1 << PinID; // Verify!
 }

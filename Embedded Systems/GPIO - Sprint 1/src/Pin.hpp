@@ -23,12 +23,13 @@ enum InterruptPinSegment
     H = 7
 };
 
-
 class Pin
 {
 private:
     GPIO_TypeDef* GPIO;
     int PinID;
+
+    void SetPullDown();
 public:
     Pin(GPIO_TypeDef* gpio, int pin);
     /// @brief Sets the type, IE Input, Output etc.
@@ -47,8 +48,8 @@ public:
     /// @return -1, due to lack of implementation.
     int AnalogRead();
 
-    void SetAsInterrupt(InterruptPinSegment segment);
-    
+    void SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type);
+    void ResetInterrupt();
 
 };
 
