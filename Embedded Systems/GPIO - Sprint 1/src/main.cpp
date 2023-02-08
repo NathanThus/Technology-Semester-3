@@ -59,7 +59,18 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+Pin button = Pin(GPIOA,0);
+Pin led = Pin(GPIOA,5);
 
+extern "C" void EXTI0_IRQHandler(void)
+{
+  button.ResetInterrupt();
+  led.Toggle();
+  const int MSGBUFSIZE = 80;
+  char msgBuf[MSGBUFSIZE];
+  snprintf(msgBuf, MSGBUFSIZE, "%s", "Boop!\r\n");
+  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+}
 /* USER CODE END 0 */
 
 /**
@@ -109,18 +120,16 @@ int main(void)
   //          THIS IS THE START OF MY CODE          //
   // ============================================== //
 
-  // GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER3) |
-  // (0b01 << GPIO_MODER_MODER3_Pos);
-  // GPIOB->OTYPER &= GPIO_OTYPER_OT_3; // Not nescessary?
-  // GPIOB->ODR |= GPIO_ODR_3;
+  button.SetType(PINTYPE_Input);
+  button.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI0_IRQn); 
 
+  led.SetType(PINTYPE_Output);
 
   while (1)
   {
   // ============================================== //
   //                     LOOP                       //
   // ============================================== //
-
   }
   /* USER CODE END 3 */
 }
