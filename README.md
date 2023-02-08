@@ -13,4 +13,5 @@ Development on STM32F303 development boards.
 ## Communication
 
 For the Proftaak (the project where my group works together with an external company) you can visit the repository below!
+
 [![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=T3-FindIt&repo=FindIt&theme=dark)](https://github.com/T3-FindIt/FindIt)
