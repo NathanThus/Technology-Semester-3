@@ -49,8 +49,8 @@ void Pin::SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type)
     const int CrPos = (PinID % 4);
     SYSCFG->EXTICR[CrRegister] = (SYSCFG->EXTICR[CrRegister] & ~ (0xF << CrPos)) | ((int)segment << CrPos * 4);
 
-    EXTI->FTSR = 1 << PinID;
-    EXTI->IMR = 1 << PinID;
+    EXTI->FTSR |= 1 << PinID;
+    EXTI->IMR |= 1 << PinID;
     NVIC_EnableIRQ(irqn_type);
 }
 

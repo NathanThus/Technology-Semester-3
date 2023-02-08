@@ -66,10 +66,6 @@ extern "C" void EXTI0_IRQHandler(void)
 {
   button.ResetInterrupt();
   led.Toggle();
-  const int MSGBUFSIZE = 80;
-  char msgBuf[MSGBUFSIZE];
-  snprintf(msgBuf, MSGBUFSIZE, "%s", "Boop!\r\n");
-  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 }
 /* USER CODE END 0 */
 
@@ -120,7 +116,7 @@ int main(void)
   //          THIS IS THE START OF MY CODE          //
   // ============================================== //
 
-  button.SetType(PINTYPE_Input);
+  button.SetType(PINTYPE_Input,INTERNALRESISTOR_PullDown);
   button.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI0_IRQn); 
 
   led.SetType(PINTYPE_Output);
