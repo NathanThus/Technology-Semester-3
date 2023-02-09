@@ -9,7 +9,8 @@ SHARED_FILES=product/challenge.c
 
 PRODUCT_FILES=$(SHARED_FILES) \
 	            product/main.c \
-	            product/realtime.c
+	            product/realtime.c\
+				product/parse.c
 
 TEST_FILES=$(SHARED_FILES) \
 	        $(UNITY_FOLDER)/unity.c \
