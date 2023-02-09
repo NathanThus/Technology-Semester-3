@@ -43,18 +43,17 @@ int main(int argc, char* argv[])
     if (selectedAssignment == 1)
     {
         int smallestNumber = 0;
-
         FindSmallestNumberThatIsRepeatedKTimes(&data[0],n,k,&smallestNumber);
 
         printf("%d\n", smallestNumber);
     }
-    // else if (selectedAssignment == 2)
-    // {
-    //     int difference = 0;
-    //     ComputeDifferenceBetweenMaxAndMinSumOfKElements_0( /* TODO: fill in parameters */ );
+    else if (selectedAssignment == 2)
+    {
+        int difference = 0;
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(&data[0],n,k,&difference);
 
-    //     printf("%d\n", difference);
-    // }
+        printf("%d\n", difference);
+    }
     // else if (selectedAssignment == 31)
     // {
     //     int difference = 0;
