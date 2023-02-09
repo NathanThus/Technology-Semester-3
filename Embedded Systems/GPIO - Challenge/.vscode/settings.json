@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "gpio.c": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}
