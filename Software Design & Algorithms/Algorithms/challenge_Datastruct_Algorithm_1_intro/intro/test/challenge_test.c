@@ -60,7 +60,10 @@ int main (int argc, char * argv[])
     UnityBegin();
 
     MY_RUN_TEST(test_find_smallest_number_for_number_of_wanted_occurences);
+
     MY_RUN_TEST(test_ComputeDifferenceBetweenMaxAndMinSumOfKElements);
     MY_RUN_TEST(test_ComputeDifferenceBetweenMaxAndMinSumOfKElements_DifferentLargest);
+
+    
     return UnityEnd();
 }
