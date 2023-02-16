@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "challenge.h"
 #include "unity.h"
 
@@ -30,7 +28,32 @@ void test_find_smallest_number_for_number_of_wanted_occurences(void)
   TEST_ASSERT_EQUAL(2, smallestNumber);
 }
 
+void test_ComputeDifferenceBetweenMaxAndMinSumOfKElements(void)
+{
+  int array[] = {10,10,2,2,1,1,1,4,5,4};
+  int arraySize = sizeof(array)/sizeof(array[0]);
+  int K = 2;
+  int difference = 0;
 
+  TEST_ASSERT_EQUAL(1, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
+  array, arraySize, K, &difference) );
+
+  TEST_ASSERT_EQUAL(18, difference);
+}
+
+
+void test_ComputeDifferenceBetweenMaxAndMinSumOfKElements_DifferentLargest(void)
+{
+  int array[] = {11,10,2,2,1,1,1,4,5,4};
+  int arraySize = sizeof(array)/sizeof(array[0]);
+  int K = 2;
+  int difference = 0;
+
+  TEST_ASSERT_EQUAL(1, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
+  array, arraySize, K, &difference) );
+
+  TEST_ASSERT_EQUAL(19, difference);
+}
 
 int main (int argc, char * argv[])
 {
@@ -38,5 +61,9 @@ int main (int argc, char * argv[])
 
     MY_RUN_TEST(test_find_smallest_number_for_number_of_wanted_occurences);
 
+    MY_RUN_TEST(test_ComputeDifferenceBetweenMaxAndMinSumOfKElements);
+    MY_RUN_TEST(test_ComputeDifferenceBetweenMaxAndMinSumOfKElements_DifferentLargest);
+
+    
     return UnityEnd();
 }
