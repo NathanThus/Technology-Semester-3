@@ -42,7 +42,7 @@ int ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
     }
 
     int min_index = 0;
-
+    // Selection sort
     for (size_t i = 0; i < size - 1; i++)
     {
         for (size_t j = i + 1; j < size; j++)
@@ -72,7 +72,6 @@ int ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
     {
         largest += array[i];
     }
-
     *difference = largest - smallest;
 
     return 1;
