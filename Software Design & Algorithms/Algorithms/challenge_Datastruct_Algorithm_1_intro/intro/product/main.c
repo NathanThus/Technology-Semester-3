@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <realtime.h>
 
 #include "challenge.h"
 #include "parse.h"
@@ -54,28 +55,66 @@ int main(int argc, char* argv[])
 
         printf("%d\n", difference);
     }
-    // else if (selectedAssignment == 31)
-    // {
-    //     int difference = 0;
-    //     ComputeDifferenceBetweenMaxAndMinSumOfKElements_1( /* TODO: fill in parameters */ );
-    //     printf("%d\n", difference);
-    // }
-    // else if (selectedAssignment == 32)
-    // {
-    //     int difference = 0;
-    //     ComputeDifferenceBetweenMaxAndMinSumOfKElements_2( /* TODO: fill in parameters */ );
-    //     printf("%d\n", difference);
-    // }
-    // else if (selectedAssignment == 33)
-    // {
-    //     int difference = 0;
-    //     ComputeDifferenceBetweenMaxAndMinSumOfKElements_3( /* TODO: fill in parameters */ );
-    //     printf("%d\n", difference);
-    // }
-    // else
-    // {
-    //     printf("Error: Unknown assignment: %d\n", selectedAssignment);
-    // }
+    else if (selectedAssignment == 31)
+    {
+        double functionTime = 0, timeEnd = 0;
+        int difference = 0;
+
+        printf("Bubble Sort\n");
+        functionTime = getRealTime();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_1(&data[0],n,k,&difference);
+        timeEnd = getRealTime();
+        printf("Difference: %d\nTime: %lf \n", difference, timeEnd - functionTime);
+    }
+    else if (selectedAssignment == 32)
+    {
+        double functionTime = 0, timeEnd = 0;
+        int difference = 0;
+
+        printf("Insertion Sort\n");
+        functionTime = getRealTime();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_2(&data[0],n,k,&difference);
+        timeEnd = getRealTime();
+        printf("Difference: %d\nTime: %lf \n", difference, timeEnd - functionTime);
+    }
+    else if (selectedAssignment == 33)
+    {
+        double functionTime = 0, timeEnd = 0;
+        int difference = 0;
+
+        printf("Gnome Sort\n");
+        functionTime = clock();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_3(&data[0],n,k,&difference);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
+    }
+    else if(selectedAssignment == 34)
+    {
+        time_t functionTime = 0, timeEnd = 0;
+        int difference = 0;
+
+        printf("Bubble Sort\n");
+        functionTime = clock();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_1(&data[0],n,k,&difference);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
+
+        printf("Insertion Sort\n");
+        functionTime = clock();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_2(&data[0],n,k,&difference);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
+
+        printf("Gnome Sort\n");
+        functionTime = clock();
+        ComputeDifferenceBetweenMaxAndMinSumOfKElements_3(&data[0],n,k,&difference);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
+    }
+    else
+    {
+        printf("Error: Unknown assignment: %d\n", selectedAssignment);
+    }
 
     return 0;
 }
