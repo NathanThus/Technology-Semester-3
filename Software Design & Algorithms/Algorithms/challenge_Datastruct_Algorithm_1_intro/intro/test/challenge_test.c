@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "challenge.h"
 #include "unity.h"
 
@@ -37,7 +35,7 @@ void test_ComputeDifferenceBetweenMaxAndMinSumOfKElements(void)
   int K = 2;
   int difference = 0;
 
-  TEST_ASSERT_EQUAL(0, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
+  TEST_ASSERT_EQUAL(1, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
   array, arraySize, K, &difference) );
 
   TEST_ASSERT_EQUAL(18, difference);
@@ -51,7 +49,7 @@ void test_ComputeDifferenceBetweenMaxAndMinSumOfKElements_DifferentLargest(void)
   int K = 2;
   int difference = 0;
 
-  TEST_ASSERT_EQUAL(0, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
+  TEST_ASSERT_EQUAL(1, ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
   array, arraySize, K, &difference) );
 
   TEST_ASSERT_EQUAL(19, difference);
