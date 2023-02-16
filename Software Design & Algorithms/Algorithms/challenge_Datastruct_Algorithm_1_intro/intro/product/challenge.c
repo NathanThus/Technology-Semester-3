@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-
 //Remove
 #include <stdio.h>
 
@@ -41,61 +40,43 @@ int ComputeDifferenceBetweenMaxAndMinSumOfKElements_0(
     {
         return -1;
     }
-    
-    k *= 2;
 
-    int ComputeArray[k];
+    int min_index = 0;
 
-    for (size_t i = 0; i < k / 2; i++)
+    for (size_t i = 0; i < size - 1; i++)
     {
-        ComputeArray[i] = 100000;
-    }
-
-    for (size_t i = k / 2; i < k; i++)
-    {
-        ComputeArray[i] = 0;
-    }
-    bool wasLower = false;
-
-    for (size_t i = 0; i < size; i++)
-    {
-        for (size_t j = 0; j < k / 2; j++)
+        for (size_t j = i + 1; j < size; j++)
         {
-            if(array[i] < ComputeArray[j])
+            if(array[j] < array[min_index])
             {
-                ComputeArray[j] = array[i];
-                wasLower = true;
+                min_index = j;
             }
         }
-
-
-        for (size_t j = k / 2; (j < k) && !wasLower; j++)
+        
+        if (min_index != i)
         {
-            if(array[i] > ComputeArray[j])
-            {
-                ComputeArray[j] = array[i];
-            }
+            // Swap values
+            int temp = array[i];
+            array[i] = array[min_index];
+            array[min_index] = temp;
         }
-        wasLower = false;
     }
 
-    int min = 0, max = 0;
+    int smallest = 0, largest = 0;
 
     for (size_t i = 0; i < k; i++)
     {
-        if(i < k/2)
-        {
-            min += ComputeArray[i];
-        }
-        else if(i >= k/2)
-        {
-            max += ComputeArray[i];
-        }
+        smallest += array[i];
+    }
+    for (size_t i = size - k; i < size; i++)
+    {
+        largest += array[i];
     }
 
-    *difference = max - min;
+    *difference = largest - smallest;
 
-    return 0;
+    return 1;
+    
 }
 
 int ComputeDifferenceBetweenMaxAndMinSumOfKElements_1(
