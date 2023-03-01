@@ -39,7 +39,7 @@ int AddToListTail(LinkedList* list, void* data)
     if (list->Head == NULL)
     {
         list->Head = malloc(sizeof(Element));
-        // list->Head->Data = malloc(list->ObjectSize);
+        list->Head->Data = malloc(list->ObjectSize);
         list->Head->Data = data;
         list->Head->Next = NULL;
         return 0;
@@ -52,13 +52,18 @@ int AddToListTail(LinkedList* list, void* data)
     }
 
     elementPtr->Next = malloc(sizeof(Element));
-    // elementPtr->Next->Data = malloc(list->ObjectSize);
+    elementPtr->Next->Data = malloc(list->ObjectSize);
     elementPtr->Next->Data = data;
     elementPtr->Next->Next = NULL;
 
     return 0;
 }
 
+void FreePointer(Element* element)
+{
+    free(element->Data);
+    free(element);
+}
 
 int RemoveDataFromList(LinkedList* list, void* data)
 {
@@ -66,41 +71,61 @@ int RemoveDataFromList(LinkedList* list, void* data)
     {
         return -1;
     }
-    Element* prevPtr = NULL;
-    Element* currentPtr = list->Head;
-
-    while (currentPtr != NULL)
+    
+    if (list->Head == NULL)
     {
-        prevPtr = currentPtr;
-        if (currentPtr->Data == data)
+        return -1;
+    }
+
+    Element* elementPtr = GetHead(list);
+
+    // Removing the head is an edge case
+    if(elementPtr->Data == data)
+    {
+
+        list->Head = elementPtr->Next; // Might want to extract this into a function for clarity.
+        FreePointer(elementPtr);     
+        return 1;     
+    }
+
+    while(elementPtr != NULL)
+    {
+        if(elementPtr->Data == data)
         {
-            Element* nextPtr = currentPtr->Next;
-            // free(currentPtr->Data);
-            prevPtr->Next = nextPtr;
-            free(currentPtr);
+            list->LastAccessed->Next = elementPtr->Next;
+            FreePointer(elementPtr);
             return 1;
         }
-        currentPtr = currentPtr->Next;
+        elementPtr = GetNext(list); // We can use list->LastAccessed if we need to connect the pointers
     }
+
     return 0;
 }
 
-int ClearList(LinkedList* list)
+// This produces some unnessesary frees, which is a big problem.
+// Something worth 4 bytes is causing the error.
+// It's probably got something to do with the head, considering the head is the only element in the list.
+
+int ClearList(LinkedList* list) 
 {
     if (list == NULL)
     {
         return -1;
     }
 
-    Element* elementPtr = list->Head;
-    Element* removerPtr;
-    while (elementPtr->Next != NULL)
+    Element* elementPtr = GetHead(list);
+
+    if(elementPtr == NULL)
     {
-        removerPtr = elementPtr;
-        elementPtr = elementPtr->Next; // INVALID READ
-        // free(removerPtr->Data);
-        free(removerPtr);
+        return 0;
     }
+    
+    while(elementPtr != NULL)
+    {
+        RemoveDataFromList(list, elementPtr->Data);
+        elementPtr = GetNext(list);
+    }
+
     return 0;
 }
 
@@ -123,7 +148,8 @@ void* GetHead(LinkedList* list)
     {
         return NULL;
     }
-    return list->Head->Data;
+    list->LastAccessed = list->Head;
+    return list->Head;
 }
 
 void* GetNext(LinkedList* list)
