@@ -1,9 +1,9 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-int GetNumberOfValues(int* n, char* argv[]);
-int GetArray(int* array, char* argv[]);
-int GetSearchParameter(int* k, char* argv[]);
+int GetNumberOfValues(int* n);
+int GetArray(int* array, int size);
+int GetSearchParameter(int* k);
 
 
 #endif //PARSE_H
