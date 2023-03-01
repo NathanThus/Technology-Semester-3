@@ -12,12 +12,12 @@ In this challenge the aim is to create a Manual Control Panel (Henceforth refere
 - LEDs
   
 ## Design
+
 ![Alt text](out/Design/Class%20Diagram.png)
 
 ## GPIO
 
 GPIO is handled by the Pin class. These represent a digital version of the pin sof the nucleo, with predefined functions to set the registers correctly. They can be configured for both input & output. Additionally, they can handle interrupts and will be able to handle PWM for the next challenge.
-
 
 ## Interrupts
 
