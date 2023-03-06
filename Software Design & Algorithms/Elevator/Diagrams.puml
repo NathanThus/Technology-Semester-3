@@ -1,0 +1,67 @@
+@startuml Use Case
+title Use Case Diagram
+
+skinParam actorStyle awesome
+
+:User: --> (Call Elevator)
+:User: --> (Select Floor)
+:User: --> (Keep door open via blocking)
+
+@enduml
+
+@startuml Class Diagram
+Title Class Diagram
+
+class Elevator
+{
+
+}
+
+class ElevatorShaft
+{
+
+}
+
+class ElevatorManager
+{
+
+}
+
+class Door
+{
+
+}
+
+class TensionSensor
+{
+
+}
+
+class OpticalSensor
+{
+
+}
+
+class FloorDisplay
+{
+
+}
+
+class InternalButtonPanel
+{
+
+}
+
+class ExternalButtonPanel
+{
+
+}
+
+class 
+
+class Button
+{
+
+}
+
+@enduml
