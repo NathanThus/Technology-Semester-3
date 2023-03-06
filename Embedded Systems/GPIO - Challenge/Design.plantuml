@@ -1,7 +1,7 @@
 @startuml Class Diagram
 
-Class Pin{
-
+Class Pin
+{
     {Method} + Pin(GPIO_Typedef* GPIO,int pinNumber)
     {Method} + Pin(GPIO_TypeDef* gpio, int pin)
     {Method} + void SetType(PinType type)
@@ -11,15 +11,16 @@ Class Pin{
     {Method} + void Off()
     {Method} + int DigitalRead()
     {Method} + int AnalogRead()
-    {Method} + void SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type)
+    {Method} + int AnalogRead()
     {Method} + void ResetInterrupt()
+    {Method} + void SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type)
 }
 
 enum PinType{
-    {static} + INPUT
-    {static} + OUTPUT
-    {static} + ANALOG
-    {static} + ALTERNATE
+    OUTPUT
+    ANALOG
+    INPUT
+    ALTERNATE
 }
 
 enum InterruptPinSegment
