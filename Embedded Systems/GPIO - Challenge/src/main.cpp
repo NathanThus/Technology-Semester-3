@@ -55,8 +55,8 @@ Pin redButton = Pin(GPIOB,3);
 Pin led1 = Pin(GPIOB,4);
 Pin led2 = Pin(GPIOB,5);
 
-int greenTimer = 0;
-int redTimer = 0;
+long greenTimer = 0;
+long redTimer = 0;
 
 /* USER CODE END PV */
 
@@ -79,7 +79,7 @@ void PrintText(char text[])
 extern "C" void EXTI0_IRQHandler(void)
 {
   greenButton.ResetInterrupt();
-  if(greenButton.DigitalRead() == 1)
+  if(greenButton.DigitalRead())
   {
     greenTimer = HAL_GetTick();
   }
@@ -101,7 +101,7 @@ extern "C" void EXTI0_IRQHandler(void)
 extern "C" void EXTI1_IRQHandler(void)
 {
   redButton.ResetInterrupt();
-  if(redButton.DigitalRead() == 1)
+  if(redButton.DigitalRead())
   {
     greenTimer = HAL_GetTick();
   }
