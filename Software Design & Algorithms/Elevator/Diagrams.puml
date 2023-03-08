@@ -12,56 +12,126 @@ skinParam actorStyle awesome
 @startuml Class Diagram
 Title Class Diagram
 
-class Elevator
-{
-
-}
-
-class ElevatorShaft
-{
-
-}
-
 class ElevatorManager
 {
 
 }
 
+class Elevator
+{
+    {method} + GetFloorNumber() : int
+    {method} + Open()
+}
+
+class ElevatorShaft
+{
+    {method} + MoveToFloor(int floor)
+    {method} + Raise()
+    {method} + Lower()
+}
+
+class FloorSelectionPanel
+{
+    {method} + SelectFloor(int floor)
+    {method} - RaiseFloorSelectionEvent()
+}
+
+class CallElevatorPanel
+{
+    {method} + CallElevator()
+    {method} - RaiseCallElevatorEvent()
+}
+
 class Door
 {
+    {method} + Open()
+    {method} + Close()
+}
 
+class Display
+{
+    {method} + UpdateFloor(int floor)
+    {method} + UpdateDirection(ElevatorDirection direction)
+    {method} + Refresh()
+}
+
+interface IDoorDisplay
+{
+    {method} + UpdateFloor(int floor)
+    {method} + UpdateDirection(ElevatorDirection direction)
+    {method} + Refresh()
 }
 
 class TensionSensor
 {
+    {method} + Reset()
+    {method} - RaiseTensionEvent()
+}
 
+class PressureSensor
+{
+    {method} - RaisePressureEvent()
 }
 
 class OpticalSensor
 {
-
+    {method} - RaiseOpticalEvent()
 }
-
-class FloorDisplay
-{
-
-}
-
-class InternalButtonPanel
-{
-
-}
-
-class ExternalButtonPanel
-{
-
-}
-
-class 
 
 class Button
 {
-
+    {field} + int ID
+    {method} + Button(int id)
+    {method} - RaiseButtonEvent()
 }
+
+class Clamp
+{
+    {Method} + Close()
+    {Method} + Open()
+}
+
+class Floor
+{
+    {field} - int FloorNumber
+    {method} + Floor(int floorNumber)
+    {method} + GetFloorNumber() : int
+}
+
+class Speaker
+{
+    {Method} + PlaySound()
+}
+
+enum ElevatorDirection
+{
+    UP
+    DOWN
+    IDLE
+}
+
+ElevatorManager --> ElevatorShaft : 1..*
+ElevatorManager --> Floor : 1..*
+
+ElevatorShaft --> Elevator
+ElevatorShaft --> TensionSensor
+
+Floor --> CallElevatorPanel
+Floor --> IDoorDisplay
+
+Elevator --> IDoorDisplay
+Elevator --> Speaker
+Elevator -----> FloorSelectionPanel
+
+FloorSelectionPanel -> Button
+CallElevatorPanel --> Button
+
+IDoorDisplay --> Display
+IDoorDisplay --> Door
+
+Door --> PressureSensor
+Door --> OpticalSensor
+
+TensionSensor --> Clamp
 
 @enduml
