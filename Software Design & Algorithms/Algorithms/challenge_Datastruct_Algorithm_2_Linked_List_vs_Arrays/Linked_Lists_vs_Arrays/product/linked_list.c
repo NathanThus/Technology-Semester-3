@@ -1,6 +1,8 @@
 #include "linked_list.h"
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef struct element Element;
 struct element
@@ -29,6 +31,18 @@ LinkedList* InitializeList(int objectSize)
     return this;
 }
 
+void AllocatePointer(Element* element, void* data, int objectSize)
+{
+    if(element == NULL || data == NULL || objectSize < 1)
+    {
+        return;
+    }
+
+    element->Data = malloc(objectSize);
+    memcpy(element->Data, data, objectSize);
+    element->Next = NULL;
+}
+
 int AddToListTail(LinkedList* list, void* data)
 {
     if (data == NULL || list == NULL)
@@ -39,9 +53,7 @@ int AddToListTail(LinkedList* list, void* data)
     if (list->Head == NULL)
     {
         list->Head = malloc(sizeof(Element));
-        list->Head->Data = malloc(list->ObjectSize);
-        list->Head->Data = data;
-        list->Head->Next = NULL;
+        AllocatePointer(list->Head, data, list->ObjectSize);
         return 0;
     }
 
@@ -52,59 +64,62 @@ int AddToListTail(LinkedList* list, void* data)
     }
 
     elementPtr->Next = malloc(sizeof(Element));
-    elementPtr->Next->Data = malloc(list->ObjectSize);
-    elementPtr->Next->Data = data;
-    elementPtr->Next->Next = NULL;
+    AllocatePointer(elementPtr->Next, data, list->ObjectSize);
+
+    list->LastAccessed = elementPtr;
 
     return 0;
 }
 
 void FreePointer(Element* element)
 {
-    free(element->Data);
+    if(element == NULL)
+    {
+        return;
+    }
+
+    if(element->Data != NULL)
+    {
+        free(element->Data);
+    }
+
     free(element);
 }
 
-int RemoveDataFromList(LinkedList* list, void* data)
+int RemoveDataFromList(LinkedList* list, int index)
 {
-    if (data == NULL || list == NULL)
+    if (list == NULL || index < 0)
     {
         return -1;
     }
     
     if (list->Head == NULL)
     {
-        return -1;
+        return 0;
     }
 
     Element* elementPtr = GetHead(list);
 
-    // Removing the head is an edge case
-    if(elementPtr->Data == data)
+    if (index == 0)
     {
-
-        list->Head = elementPtr->Next; // Might want to extract this into a function for clarity.
-        FreePointer(elementPtr);     
-        return 1;     
+        list->Head = elementPtr->Next;
+        FreePointer(elementPtr);
+        return 1;
     }
 
-    while(elementPtr != NULL)
+    int i = 0;
+    while (i < index - 1)
     {
-        if(elementPtr->Data == data)
-        {
-            list->LastAccessed->Next = elementPtr->Next;
-            FreePointer(elementPtr);
-            return 1;
-        }
-        elementPtr = GetNext(list); // We can use list->LastAccessed if we need to connect the pointers
+        elementPtr = GetNext(list);
+        i++;
     }
 
-    return 0;
+    Element* elementToRemove = GetNext(list);
+    elementPtr->Next = elementToRemove->Next;
+    FreePointer(elementToRemove);
+
+    return 1;
 }
-
-// This produces some unnessesary frees, which is a big problem.
-// Something worth 4 bytes is causing the error.
-// It's probably got something to do with the head, considering the head is the only element in the list.
 
 int ClearList(LinkedList* list) 
 {
@@ -113,32 +128,27 @@ int ClearList(LinkedList* list)
         return -1;
     }
 
-    Element* elementPtr = GetHead(list);
+    while (GetHead(list) != NULL)
+    {
+        RemoveDataFromList(list,0);
+    }
 
-    if(elementPtr == NULL)
-    {
-        return 0;
-    }
-    
-    while(elementPtr != NULL)
-    {
-        RemoveDataFromList(list, elementPtr->Data);
-        elementPtr = GetNext(list);
-    }
+    list->LastAccessed = NULL;
 
     return 0;
 }
 
 int DestructList(LinkedList** list)
 {
-    if(list == NULL)
+    if(*list == NULL)
     {
         return -1;
     }
+
     ClearList(*list);
     free(*list);
+
     *list = NULL;
-    list = NULL;
     return 0;
 }
 
@@ -160,4 +170,13 @@ void* GetNext(LinkedList* list)
     }
     list->LastAccessed = list->LastAccessed->Next;
     return list->LastAccessed;
+}
+
+void* RetrieveData(LinkedList *list, void *data)
+{
+    if (data == NULL || list == NULL)
+    {
+        return NULL;
+    }
+    return ((Element*)data)->Data;
 }

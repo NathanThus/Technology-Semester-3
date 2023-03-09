@@ -16,7 +16,7 @@ int AddToListTail(LinkedList* list, void* data);
 
 // Returns a 0 if the data is sucessfully removed from the list
 // Returns a -1 if the data is NULL or the list is NULL
-int RemoveDataFromList(LinkedList* list, void* data);
+int RemoveDataFromList(LinkedList* list, int index);
 
 // Returns a 0 if the list is cleared
 // Returns a -1 if the list is NULL
@@ -29,4 +29,9 @@ void* GetHead(LinkedList* list);
 // Returns a pointer to the next element in the list
 // Returns NULL if the list is NULL or empty
 void* GetNext(LinkedList* list);
+
+// Returns a pointer to the data
+// Returns NULL if the list is NULL or empty
+void* RetrieveData(LinkedList* list, void* data);
+
 #endif
