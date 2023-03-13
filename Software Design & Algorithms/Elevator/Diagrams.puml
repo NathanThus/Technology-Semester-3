@@ -14,7 +14,6 @@ Title Class Diagram
 
 class ElevatorManager
 {
-
 }
 
 class Elevator
@@ -62,30 +61,36 @@ interface IDoorDisplay
     {method} + Refresh()
 }
 
-class TensionSensor
+class TensionManager
+{
+}
+
+interface ITensionSensor
 {
     {method} + Reset()
     {method} - RaiseTensionEvent()
 }
 
-class PressureSensor
+interface IPressureSensor
 {
     {method} - RaisePressureEvent()
 }
 
-class OpticalSensor
+interface IOpticalSensor
 {
     {method} - RaiseOpticalEvent()
 }
 
-class Button
+interface IButton
 {
-    {field} + int ID
-    {method} + Button(int id)
     {method} - RaiseButtonEvent()
 }
 
-class Clamp
+class Button
+{
+}
+
+interface IClamp
 {
     {Method} + Close()
     {Method} + Open()
@@ -98,7 +103,7 @@ class Floor
     {method} + GetFloorNumber() : int
 }
 
-class Speaker
+interface ISpeaker
 {
     {Method} + PlaySound()
 }
@@ -114,24 +119,32 @@ ElevatorManager --> ElevatorShaft : 1..*
 ElevatorManager --> Floor : 1..*
 
 ElevatorShaft --> Elevator
-ElevatorShaft --> TensionSensor
+ElevatorShaft --> TensionManager
 
 Floor --> CallElevatorPanel
 Floor --> IDoorDisplay
 
 Elevator --> IDoorDisplay
-Elevator --> Speaker
+Elevator --> ISpeaker
+Speaker -up-|> ISpeaker
 Elevator -----> FloorSelectionPanel
 
-FloorSelectionPanel -> Button
-CallElevatorPanel --> Button
+FloorSelectionPanel -> IButton
+CallElevatorPanel --> IButton
 
 IDoorDisplay --> Display
 IDoorDisplay --> Door
 
-Door --> PressureSensor
-Door --> OpticalSensor
+Door --> IPressureSensor
+Door --> IOpticalSensor
+OpticalSensor -|> IOpticalSensor
+PressureSensor -|> IPressureSensor
 
-TensionSensor --> Clamp
+Button -up-|>  IButton
+
+TensionManager --> IClamp
+TensionManager --> ITensionSensor
+TensionSensor -up-|> ITensionSensor
+Clamp -up-|> IClamp
 
 @enduml
