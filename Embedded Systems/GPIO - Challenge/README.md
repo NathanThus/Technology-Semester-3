@@ -80,7 +80,7 @@ extern "C" void EXTI0_IRQHandler(void)
 
 ### Measuring Low Power
 
-Lorem Ipsum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, nisl eget ultricies tincidunt, nunc nisl aliquam nisl, eget aliquam nisl.
 
 ## Conclusion
 
