@@ -38,7 +38,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LONG_PRESS 500
-#define SHORT_PRESS 20
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,6 +55,7 @@ Pin Blue_Led = Pin(GPIOA,5);
 Pin Orange_Led = Pin(GPIOA,6);
 
 long greenTimer = 0;
+long blackTimer = 0;
 bool isGreenWaiting = true;
 
 /* USER CODE END PV */
@@ -69,44 +69,61 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void PrintText(char text[])
+{
+  const int MSGBUFSIZE = 80;
+  char msgBuf[MSGBUFSIZE];
+  snprintf(msgBuf, MSGBUFSIZE, "%s", text);
+  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+}
+
 extern "C" void EXTI0_IRQHandler(void)
 {
-  BlackButton.ResetInterrupt();
-  Blue_Led.Toggle();
+  if(BlackButton.DigitalRead())
+  {
+    Blue_Led.On();
+    blackTimer = HAL_GetTick();
+  }
+  else // Release
+  {
+    Blue_Led.Off();
+    int triggerTime = HAL_GetTick();
+    int actualTime = triggerTime - blackTimer;
+    if(actualTime < LONG_PRESS)
+    {
+      PrintText("Short!\n");
+    }
+    else
+    {
+      PrintText("Long!\n");
+    }
+  }
 }
 
 extern "C" void EXTI1_IRQHandler(void)
 {
-  GreenButton.ResetInterrupt();
-  
-  if(!GreenButton.DigitalRead())
+  if(GreenButton.DigitalRead())
   {
+    Orange_Led.On();
     greenTimer = HAL_GetTick();
   }
-  else
+  else // Release
   {
+    Orange_Led.Off();
     int triggerTime = HAL_GetTick();
-    if(triggerTime - greenTimer > LONG_PRESS && triggerTime - greenTimer < SHORT_PRESS)
+    int actualTime = triggerTime - greenTimer;
+    if(actualTime < LONG_PRESS)
     {
-      const int MSGBUFSIZE = 80;
-      char msgBuf[MSGBUFSIZE];
-      snprintf(msgBuf, MSGBUFSIZE, "%s", "Long World!\r\n");
-      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+      PrintText("Short!\n");
     }
     else
     {
-      const int MSGBUFSIZE = 80;
-      char msgBuf[MSGBUFSIZE];
-      snprintf(msgBuf, MSGBUFSIZE, "%s", "Short World!\r\n");
-      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+      PrintText("Long!\n");
     }
   }
+  GreenButton.ResetInterrupt();
 }
-
-// const int MSGBUFSIZE = 80;
-// char msgBuf[MSGBUFSIZE];
-// snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
-// HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
 /* USER CODE END 0 */
 
@@ -153,10 +170,10 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  BlackButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullUp);
+  BlackButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullDown);
   BlackButton.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI0_IRQn);
 
-  GreenButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullUp);
+  GreenButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullDown);
   GreenButton.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI1_IRQn);
 
   Blue_Led.SetType(PINTYPE_Output);
@@ -164,7 +181,7 @@ int main(void)
 
   while (1)
   {
-    // __WFI();
+    __WFI();
   }
   /* USER CODE END 3 */
 }
