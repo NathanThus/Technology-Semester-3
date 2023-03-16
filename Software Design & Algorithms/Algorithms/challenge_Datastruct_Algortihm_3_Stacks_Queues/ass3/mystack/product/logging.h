@@ -1,5 +1,5 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef __LOGGING_H__
+#define __LOGGING_H__
 
 #include <stdio.h>
 
@@ -16,4 +16,4 @@
 #endif
 
 
-#endif /* LOGGING_H */
+#endif /* __LOGGING_H__ */
