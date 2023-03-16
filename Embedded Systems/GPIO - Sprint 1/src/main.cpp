@@ -67,6 +67,26 @@ extern "C" void EXTI0_IRQHandler(void)
   button.ResetInterrupt();
   led.Toggle();
 }
+
+extern "C" void EXTI1_IRQHandler(void)
+{
+  greenButton.ResetInterrupt();
+  if(greenButton.DigitalRead())
+  {
+    greenTimer = HAL_GetTick();
+  }
+  else
+  {
+    int triggerTime = HAL_GetTick();
+    if(triggerTime - greenTimer > LONG_PRESS && triggerTime - greenTimer < SHORT_PRESS)
+    {
+      PrintText("Long Press\n");
+    }
+    else
+    {
+      PrintText("Short Press\n");
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -123,9 +143,7 @@ int main(void)
 
   while (1)
   {
-  // ============================================== //
-  //                     LOOP                       //
-  // ============================================== //
+    HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
