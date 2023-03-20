@@ -1,4 +1,3 @@
-
 #include "mystack.h"
 #include "logging.h"
 #include <stdio.h>
@@ -14,27 +13,97 @@
 * they are storing. This is not a concern of the stack
 */
 
-StackMeta_t *mystack_create(size_t objsize)
+StackMeta_t* Stack = NULL;
+
+StackMeta_t* mystack_create(size_t objsize)
 {
- 	return NULL;
+	if(objsize < 1)
+	{
+		return NULL;
+	}
+
+	Stack = malloc(sizeof(StackMeta_t));
+
+	if(Stack == NULL)
+	{
+		return NULL;
+	}
+
+	Stack->numelem = 0;
+	Stack->objsize = objsize;
+	Stack->stack = NULL;
+
+ 	return Stack;
 }
 
 int mystack_push(StackMeta_t *stack, void* obj)
 {
+	if(stack == NULL || obj == NULL)
+	{
+		return -1;
+	}
+
+	StackObject_t* newObject = malloc(sizeof(StackObject_t));
+	if(newObject == NULL)
+	{
+		return -1;
+	}
+	newObject->obj = malloc(stack->objsize);
+	if(newObject->obj == NULL)
+	{
+		return -1;
+	}
+	memcpy(newObject->obj, obj, stack->objsize);
+	newObject->next = NULL;
+
+	
 	return 0;
 }
 
 int mystack_pop(StackMeta_t *stack, void* obj)
 {
-      	return 0;
+	if(stack == NULL || obj == NULL)
+	{
+		return -1;
+	}
+
+	if(stack->stack == NULL)
+	{
+		return -1;
+	}
+
+	StackObject_t* temp = stack->stack;
+	StackObject_t *prev = NULL;
+
+	StackObject_t* headPtr = stack->stack;
+	StackObject_t *nextPtr = stack->stack->next;
+
+	stack->stack = nextPtr;
+	obj = headPtr->obj;
+	free(headPtr);
+
+	return 0;
 }
 
 void mystack_destroy(StackMeta_t *stack)
 {
-	return;
+	if(stack == NULL)
+	{
+		return;
+	}
+
+	free(stack->stack);
+	free(stack);
 }
 
 int mystack_nofelem(StackMeta_t *stack)
 {
-	return 0;
+	if(stack == NULL)
+	{
+		return -1;
+	}
+	else
+	{
+		return stack->numelem;
+	}
 }
