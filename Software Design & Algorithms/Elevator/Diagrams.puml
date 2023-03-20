@@ -19,12 +19,12 @@ class ElevatorManager
 class Elevator
 {
     {method} + GetFloorNumber() : int
+    {method} + MoveToFloor(int floor)
     {method} + Open()
 }
 
 class ElevatorShaft
 {
-    {method} + MoveToFloor(int floor)
     {method} + Raise()
     {method} + Lower()
 }
@@ -146,5 +146,113 @@ TensionManager --> IClamp
 TensionManager --> ITensionSensor
 TensionSensor -up-|> ITensionSensor
 Clamp -up-|> IClamp
+
+@enduml
+
+@startuml Sequence_Emergency
+title Sequence Diagram - Emergency
+
+
+entity TensionManager
+entity Clamp
+
+loop
+TensionManager -> TensionManager : CheckTension()
+end
+TensionManager -> Clamp : Close()
+
+
+alt Tension is Reset
+TensionManager -> Clamp : Open()
+end
+
+@enduml
+
+@startuml Sequence_RequestElevator
+title Sequence Diagram - Request Elevator
+
+Actor User
+entity Button
+entity CallElevatorPanel
+entity ElevatorShaft
+entity ElevatorManager
+entity Elevator
+entity Display
+entity Door
+
+User -> Button : Press()
+Button -> CallElevatorPanel : RaiseButtonEvent()
+CallElevatorPanel -> ElevatorShaft : CallElevator()
+ElevatorShaft -> ElevatorManager : RequestElevator()
+ElevatorManager -> Elevator : MoveToFloor()
+
+alt Elevator is moving
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+else
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+Elevator -> Door : Open()
+Door -> Elevator
+end
+Elevator -> User
+
+@enduml
+
+@startuml Sequence_SelectFloor
+title Sequence Diagram - Select Floor
+
+Actor User
+Entity Button
+Entity FloorSelectionPanel
+Entity Elevator
+Entity Display
+entity Door
+
+User -> Button : Press()
+Button -> FloorSelectionPanel : RaiseButtonEvent()
+FloorSelectionPanel -> Elevator : SelectFloor()
+Elevator -> Elevator : MoveToFloor()
+
+loop Elevator is moving
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+end
+
+Elevator -> Door : Open()
+Door -> Elevator
+Elevator -> User
+@enduml
+
+@startuml Sequence_KeepDoorOpen
+title Sequence Diagram - Keep Door Open
+
+actor User
+entity Door
+entity OpticalSensor
+entity PressureSensor
+
+note left of Door
+    This is akin to sticking
+    your foot in the door.
+end note
+loop PressureSensor is triggered
+User -> PressureSensor : Block()
+OpticalSensor -> Door : Open()
+else OpticalSensor is triggered
+User -> PressureSensor : Block()
+OpticalSensor -> Door : Open()
+else
+Door -> Door : Close()
+end
+
+Door -> User
+
 
 @enduml

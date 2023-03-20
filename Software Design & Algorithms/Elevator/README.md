@@ -69,6 +69,24 @@ This is not a requirement, but I prefer it.
 
 ![ClassDiagram](./Diagrams/Class%20Diagram.png "Class Diagram")
 
+## Sequence Diagrams
+
+### Call Elevator
+
+![SequenceDiagram](./out/Diagrams/Sequence_RequestElevator.png "Sequence Diagram")
+
+### Select Floor
+
+![SequenceDiagram](./out/Diagrams/Sequence_SelectFloor.png "Sequence Diagram")
+
+### Keep Door Open
+
+![SequenceDiagram](./out/Diagrams/Sequence_KeepDoorOpen.png "Sequence Diagram")
+
+### Emergency
+
+![SequenceDiagram](./out/Diagrams/Sequence_Emergency.png "Sequence Diagram")
+
 ## Sources
 
 ![Sketch1](IMG20230227132257.jpg "Sketch")
