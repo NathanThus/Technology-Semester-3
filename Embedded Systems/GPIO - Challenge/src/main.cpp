@@ -37,6 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define LONG_PRESS 500
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,14 +48,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-Pin greenButton = Pin(GPIOB,6);
-Pin redButton = Pin(GPIOB,3);
 
-Pin led1 = Pin(GPIOB,4);
-Pin led2 = Pin(GPIOB,5);
+Pin BlackButton = Pin(GPIOA, 0);
+Pin GreenButton = Pin(GPIOA, 1);
+Pin Blue_Led = Pin(GPIOA,5);
+Pin Orange_Led = Pin(GPIOA,6);
 
-int greenTimer = 0;
-int redTimer = 0;
+long greenTimer = 0;
+long blackTimer = 0;
+bool isGreenWaiting = true;
 
 /* USER CODE END PV */
 
@@ -68,19 +70,61 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// Green Button
-extern "C" void EXTI0_IRQHandler(void)
+void PrintText(char text[])
 {
-  greenButton.ResetInterrupt();
-  led1.Toggle();
+  const int MSGBUFSIZE = 80;
+  char msgBuf[MSGBUFSIZE];
+  snprintf(msgBuf, MSGBUFSIZE, "%s", text);
+  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 }
 
-// Red Button
+extern "C" void EXTI0_IRQHandler(void)
+{
+  if(BlackButton.DigitalRead())
+  {
+    Blue_Led.On();
+    blackTimer = HAL_GetTick();
+  }
+  else // Release
+  {
+    Blue_Led.Off();
+    int triggerTime = HAL_GetTick();
+    int actualTime = triggerTime - blackTimer;
+    if(actualTime < LONG_PRESS)
+    {
+      PrintText("Short!\n");
+    }
+    else
+    {
+      PrintText("Long!\n");
+    }
+  }
+}
+
 extern "C" void EXTI1_IRQHandler(void)
 {
-  redButton.ResetInterrupt();
-  led2.Toggle();
+  if(GreenButton.DigitalRead())
+  {
+    Orange_Led.On();
+    greenTimer = HAL_GetTick();
+  }
+  else // Release
+  {
+    Orange_Led.Off();
+    int triggerTime = HAL_GetTick();
+    int actualTime = triggerTime - greenTimer;
+    if(actualTime < LONG_PRESS)
+    {
+      PrintText("Short!\n");
+    }
+    else
+    {
+      PrintText("Long!\n");
+    }
+  }
+  GreenButton.ResetInterrupt();
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -126,21 +170,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  greenButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullUp);
-  greenButton.SetAsInterrupt(INTERRUPTPINSEGMENT_B,EXTI0_IRQn);
-  
-  redButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullUp);
-  greenButton.SetAsInterrupt(INTERRUPTPINSEGMENT_B,EXTI1_IRQn);
+  BlackButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullDown);
+  BlackButton.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI0_IRQn);
 
+  GreenButton.SetType(PINTYPE_Input,INTERNALRESISTOR_PullDown);
+  GreenButton.SetAsInterrupt(INTERRUPTPINSEGMENT_A,EXTI1_IRQn);
 
-  led1.SetType(PINTYPE_Output);
-  led2.SetType(PINTYPE_Output);
+  Blue_Led.SetType(PINTYPE_Output);
+  Orange_Led.SetType(PINTYPE_Output);
 
   while (1)
   {
-    // Print stuff to the serial monitor here.
-
-
     __WFI();
   }
   /* USER CODE END 3 */
