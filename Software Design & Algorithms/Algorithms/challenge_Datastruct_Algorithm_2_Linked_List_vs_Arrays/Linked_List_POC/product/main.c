@@ -18,19 +18,6 @@
  */
 static void PrintAllElements()
 {
-    if(ListGetHead() == NULL)
-    {
-        printf("<empty>\n");
-        return;
-    }
-    Element* elementPtr = ListGetHead();
-    int index = 0;
-    while(elementPtr != NULL)
-    {
-        printf("%3d:  addr:%4d  size:%4d\n", index, elementPtr->address, elementPtr->size);
-        elementPtr = elementPtr->next;
-        index++;
-    }
 }
 
 int main()
