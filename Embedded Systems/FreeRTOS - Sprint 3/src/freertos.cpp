@@ -63,12 +63,26 @@ const osThreadAttr_t defaultTask_attributes = {
     .tz_module = 0,
     .reserved = 0};
 
+//TODO: Turn this into something I can manually generate.
+osThreadId_t LedTaskHandle;
+const osThreadAttr_t LedTaskHandle_attributes =
+    {
+        .name = "LEDThread",
+        .attr_bits = osThreadDetached,
+        .cb_mem = NULL,
+        .cb_size = 0,
+        .stack_mem = NULL,
+        .stack_size = 128 * 4,
+        .priority = (osPriority)osPriorityNormal1,
+        .tz_module = 0,
+        .reserved = 0};
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void StartLedTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -102,7 +116,7 @@ void MX_FREERTOS_Init(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
+  LedTaskHandle = osThreadNew(StartLedTask, NULL, &LedTaskHandle_attributes);
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -130,6 +144,17 @@ void StartDefaultTask(void *argument)
   /* USER CODE END StartDefaultTask */
 }
 
+void StartLedTask(void *argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
+  /* Infinite loop */
+  for (;;)
+  {
+    //Toggle the Onboard LED
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+  }
+  /* USER CODE END StartDefaultTask */
+}
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
