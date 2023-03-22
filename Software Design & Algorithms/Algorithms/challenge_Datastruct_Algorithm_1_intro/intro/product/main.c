@@ -83,33 +83,33 @@ int main(int argc, char* argv[])
         int difference = 0;
 
         printf("Gnome Sort\n");
-        functionTime = getRealTime();
+        functionTime = clock();
         ComputeDifferenceBetweenMaxAndMinSumOfKElements_3(&data[0],n,k,&difference);
-        timeEnd = getRealTime();
-        printf("Difference: %d\nTime: %lf\n", difference, timeEnd - functionTime);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
     }
     else if(selectedAssignment == 34)
     {
-        double functionTime = 0, timeEnd = 0;
+        time_t functionTime = 0, timeEnd = 0;
         int difference = 0;
 
         printf("Bubble Sort\n");
-        functionTime = getRealTime();
+        functionTime = clock();
         ComputeDifferenceBetweenMaxAndMinSumOfKElements_1(&data[0],n,k,&difference);
-        timeEnd = getRealTime();
-        printf("Difference: %d\nTime: %lf\n", difference, timeEnd - functionTime);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
 
         printf("Insertion Sort\n");
-        functionTime = getRealTime();
+        functionTime = clock();
         ComputeDifferenceBetweenMaxAndMinSumOfKElements_2(&data[0],n,k,&difference);
-        timeEnd = getRealTime();
-        printf("Difference: %d\nTime: %lf\n", difference, timeEnd - functionTime);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
 
         printf("Gnome Sort\n");
-        functionTime = getRealTime();
+        functionTime = clock();
         ComputeDifferenceBetweenMaxAndMinSumOfKElements_3(&data[0],n,k,&difference);
-        timeEnd = getRealTime();
-        printf("Difference: %d\nTime: %lf\n", difference, timeEnd - functionTime);
+        timeEnd = clock();
+        printf("Difference: %d\nTime: %ld\n", difference, timeEnd - functionTime);
     }
     else
     {
