@@ -57,7 +57,6 @@ Pin Orange_Led = Pin(GPIOA,6);
 long greenTimer = 0;
 long blackTimer = 0;
 bool isGreenWaiting = true;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
