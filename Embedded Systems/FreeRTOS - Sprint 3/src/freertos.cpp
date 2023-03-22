@@ -152,6 +152,7 @@ void StartLedTask(void *argument)
   {
     //Toggle the Onboard LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }
