@@ -37,6 +37,7 @@ extern StackMeta_t *mystack_create(size_t objsize);
 extern int mystack_push(StackMeta_t *stack, void* obj);
 /* Pops an object from the stack identified by its handle
  * returns 0 on success and -1 on an error
+ * The object is copied to the memory location pointed to by obj
  */
 extern int mystack_pop(StackMeta_t *stack, void* obj);
 /* Destroys and cleans the stack handle */
