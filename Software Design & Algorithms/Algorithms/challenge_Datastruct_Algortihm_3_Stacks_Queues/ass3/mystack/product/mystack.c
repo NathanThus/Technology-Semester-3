@@ -48,14 +48,22 @@ int mystack_push(StackMeta_t *stack, void* obj)
 	{
 		return -1;
 	}
+
 	newObject->obj = malloc(stack->objsize);
+
 	if(newObject->obj == NULL)
 	{
 		return -1;
 	}
+
 	memcpy(newObject->obj, obj, stack->objsize);
 	newObject->next = NULL;
 
+	StackObject_t* formerHeadPtr = stack->stack;
+	newObject->next = formerHeadPtr;
+	stack->stack = newObject;
+
+	stack->numelem++;
 	
 	return 0;
 }
@@ -67,21 +75,19 @@ int mystack_pop(StackMeta_t *stack, void* obj)
 		return -1;
 	}
 
-	if(stack->stack == NULL)
+	if(stack->stack == NULL) // stack is empty
 	{
 		return -1;
 	}
-
-	StackObject_t* temp = stack->stack;
-	StackObject_t *prev = NULL;
 
 	StackObject_t* headPtr = stack->stack;
 	StackObject_t *nextPtr = stack->stack->next;
 
 	stack->stack = nextPtr;
-	obj = headPtr->obj;
+	memcpy(obj, headPtr->obj, stack->objsize);
 	free(headPtr);
 
+	stack->numelem--;
 	return 0;
 }
 
