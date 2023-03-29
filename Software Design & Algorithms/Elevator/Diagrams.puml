@@ -118,7 +118,7 @@ enum ElevatorDirection
 ElevatorManager --> ElevatorShaft : 1..*
 ElevatorManager --> Floor : 1..*
 
-ElevatorShaft --> Elevator
+ElevatorShaft --* Elevator : 1..1
 ElevatorShaft --> TensionManager
 
 Floor --> CallElevatorPanel
@@ -126,26 +126,25 @@ Floor --> IDoorDisplay
 
 Elevator --> IDoorDisplay
 Elevator --> ISpeaker
-Speaker -up-|> ISpeaker
+Speaker .up.|> ISpeaker
 Elevator -----> FloorSelectionPanel
 
 FloorSelectionPanel -> IButton
 CallElevatorPanel --> IButton
 
-IDoorDisplay --> Display
-IDoorDisplay --> Door
+IDoorDisplay <|.. Display
+IDoorDisplay <|.. Door
 
 Door --> IPressureSensor
 Door --> IOpticalSensor
-OpticalSensor -|> IOpticalSensor
-PressureSensor -|> IPressureSensor
-
-Button -up-|>  IButton
-
+OpticalSensor .|> IOpticalSensor
+PressureSensor .|> IPressureSensor
+'TODO: Shared Association pijlen
+Button .up.|> IButton
 TensionManager --> IClamp
 TensionManager --> ITensionSensor
-TensionSensor -up-|> ITensionSensor
-Clamp -up-|> IClamp
+TensionSensor .up.|> ITensionSensor
+Clamp .up.|> IClamp
 
 @enduml
 
@@ -161,8 +160,7 @@ TensionManager -> TensionManager : CheckTension()
 end
 TensionManager -> Clamp : Close()
 
-
-alt Tension is Reset
+alt Tension Reset
 TensionManager -> Clamp : Open()
 end
 
@@ -173,19 +171,13 @@ title Sequence Diagram - Request Elevator
 
 Actor User
 entity Button
-entity CallElevatorPanel
-entity ElevatorShaft
 entity ElevatorManager
 entity Elevator
 entity Display
 entity Door
-
-User -> Button : Press()
-Button -> CallElevatorPanel : RaiseButtonEvent()
-CallElevatorPanel -> ElevatorShaft : CallElevator()
-ElevatorShaft -> ElevatorManager : RequestElevator()
-ElevatorManager -> Elevator : MoveToFloor()
-
+User->Button : Press
+Button -> ElevatorManager : RaiseEvent()
+ElevatorManager -> Elevator : MoveToFloor(int floor)
 alt Elevator is moving
 Elevator -> Display : UpdateFloor()
 Display -> Elevator
@@ -199,7 +191,9 @@ Display -> Elevator
 Elevator -> Door : Open()
 Door -> Elevator
 end
-Elevator -> User
+
+Elevator ->Door : Close()
+Door -> Elevator
 
 @enduml
 
@@ -213,7 +207,7 @@ Entity Elevator
 Entity Display
 entity Door
 
-User -> Button : Press()
+User -> Button : Press
 Button -> FloorSelectionPanel : RaiseButtonEvent()
 FloorSelectionPanel -> Elevator : SelectFloor()
 Elevator -> Elevator : MoveToFloor()
@@ -227,28 +221,32 @@ end
 
 Elevator -> Door : Open()
 Door -> Elevator
+Elevator -> Door : Close()
+Door -> Elevator
 Elevator -> User
 @enduml
 
 @startuml Sequence_KeepDoorOpen
 title Sequence Diagram - Keep Door Open
-
+' TODO: Check methods
 actor User
 entity Door
 entity OpticalSensor
 entity PressureSensor
 
-note left of Door
+note left of User
     This is akin to sticking
     your foot in the door.
 end note
 loop PressureSensor is triggered
-User -> PressureSensor : Block()
-OpticalSensor -> Door : Open()
+User -> PressureSensor : Block
+PressureSensor -> Door : RaisePressureSensorEvent()
+Door -> Door : Open()
 else OpticalSensor is triggered
-User -> PressureSensor : Block()
-OpticalSensor -> Door : Open()
-else
+User -> OpticalSensor : Block
+OpticalSensor -> Door : RaiseOpticalSensorEvent()
+Door -> Door: Open()
+else No Blocking is Detected
 Door -> Door : Close()
 end
 
