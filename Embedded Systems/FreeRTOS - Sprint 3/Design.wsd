@@ -1,0 +1,6 @@
+@startuml ClassDiagram
+Title Class Diagram
+
+Class Timer
+Class SimpleWatchdog
+@enduml
