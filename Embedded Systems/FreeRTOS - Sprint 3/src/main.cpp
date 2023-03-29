@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "timer.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,21 +45,26 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+Timer timer = Timer(TIM2);
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
-
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /* USER CODE END 0 */
+
+extern "C" int TIM2_IRQHandler(void)
+{
+  timer.ResetInterrupt();
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+  return 0;
+}
 
 /**
   * @brief  The application entry point.
@@ -106,12 +111,18 @@ int main(void)
   char msgBuf[MSGBUFSIZE];
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+
+  timer.ToggleClock(TIMER2);
+  timer.SetPrescaler(PSC_SECOND);
+  timer.SetLimit(ARR_SECOND);
+  timer.EnableInterrupt(TIM2_IRQn);
+  timer.Enable();
+
   while (1)
   {
     /* USER CODE END WHILE */
     snprintf(msgBuf, MSGBUFSIZE, "%s", "In loop!\r\n");
     HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-    GPIOA->ODR ^= (1 << 5); // Toggle GPIO pin PA5 (onboard green LED).
     HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
