@@ -10,7 +10,8 @@ Breadbake is a simplified representation of a bread baking machine.
   - Rising - The machine is rising the dough.
   - Resting - The machine is resting the dough.
   - Done - Machine has finished baking bread.
-- Error - The machine has encountered an error.
+  - Cancel - The user has cancelled the program.
+- ProgramSelection - The user is setting the program.
 
 ## Managing easy state switching
 
