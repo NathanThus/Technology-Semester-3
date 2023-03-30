@@ -71,6 +71,62 @@ int AddToListTail(LinkedList* list, void* data)
     return 0;
 }
 
+int AddToHead(LinkedList *list, void *data)
+{
+    if (data == NULL || list == NULL)
+    {
+        return -1;
+    }
+
+    Element* newHead = malloc(sizeof(Element));
+    AllocatePointer(newHead, data, list->ObjectSize);
+    newHead->Next = list->Head;
+    list->Head = newHead;
+
+    return 0;
+}
+
+int InsertAtIndex(LinkedList* list, void* data, int index)
+{
+    if(list == NULL || data == NULL || index < 0)
+    {
+        return -1;
+    }
+
+    if(index == 0)
+    {
+        AddToHead(list,data);
+    }
+
+    Element* elementPtr = GetHead(list);
+    Element* previousPtr = NULL;
+
+    for (int i = 0; (i < index && elementPtr != NULL); i++)
+    {
+        previousPtr = elementPtr;
+        elementPtr = GetNext(list);   
+    }
+    
+    if(elementPtr == NULL)
+    {
+        return -1;
+    }
+
+    if(elementPtr->Next == NULL)
+    {
+        AddToListTail(list,data);
+    }
+    else
+    {
+        Element* newElement = malloc(sizeof(Element));
+        AllocatePointer(newElement, data, list->ObjectSize);
+        previousPtr->Next = newElement;
+        newElement->Next = elementPtr;
+    }
+
+    return 0;
+}
+
 void FreePointer(Element* element)
 {
     if(element == NULL)
@@ -140,7 +196,7 @@ int ClearList(LinkedList* list)
 
 int DestructList(LinkedList** list)
 {
-    if(*list == NULL)
+    if(list == NULL)
     {
         return -1;
     }
@@ -148,7 +204,6 @@ int DestructList(LinkedList** list)
     ClearList(*list);
     free(*list);
 
-    *list = NULL;
     return 0;
 }
 

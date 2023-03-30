@@ -14,6 +14,14 @@ int DestructList(LinkedList** list);
 // Returns a -1 if the data is NULL or the list is NULL
 int AddToListTail(LinkedList* list, void* data);
 
+// Returns a 0 if the data is sucessfully added to the list
+// Returns a -1 if the data is NULL or the list is NULL
+int AddToHead(LinkedList* list, void* data);
+
+// Returns a 0 if the data is succesfully added to the list.
+// Returns a -1 if either list / data are NULL, or index is out of range.
+int InsertAtIndex(LinkedList* list, void* data, int index);
+
 // Returns a 0 if the data is sucessfully removed from the list
 // Returns a -1 if the data is NULL or the list is NULL
 int RemoveDataFromList(LinkedList* list, int index);
