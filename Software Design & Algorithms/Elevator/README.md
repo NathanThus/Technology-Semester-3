@@ -65,7 +65,7 @@ Note: I prefer working with events over wierd callback functions, so I will be u
 - Refers to the class name
 - suffixes with "Event"
 
-This is not a requirement, but I prefer it.
+This is not a requirement, but I prefer it. You could definetly use callback functions or even interrupts, but that's diving too far into the hardware implementation for the scope of this project.
 
 ![ClassDiagram](./Diagrams/Class%20Diagram.png "Class Diagram")
 
