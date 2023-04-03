@@ -115,34 +115,56 @@ enum ElevatorDirection
     IDLE
 }
 
-ElevatorManager --> ElevatorShaft : 1..*
-ElevatorManager --> Floor : 1..*
+class Timer
+{
+    {field} - int Time;
+    {method} + Timer(int time)
+    {method} + Start()
+    {method} + hasElapsed()
+}
 
-ElevatorShaft --* Elevator : 1..1
-ElevatorShaft --> TensionManager
+ElevatorManager "1" o-- "*" ElevatorShaft
+ElevatorManager "1" o-- "*" Floor
 
-Floor --> CallElevatorPanel
-Floor --> IDoorDisplay
+ElevatorShaft "1" --* "1" Elevator
+ElevatorShaft "1" o-- "1" TensionManager
 
-Elevator --> IDoorDisplay
-Elevator --> ISpeaker
+Floor "1" o-- "*" CallElevatorPanel
+Floor "1" o-- "1" IDoorDisplay
+
+note top of CallElevatorPanel
+    The reason for multiplicity is
+    that depending on the clients wishes,
+    multiple panels may be installed.
+end note
+
+Elevator "1" o-- "1" IDoorDisplay
+Elevator "1" o--  "1" ISpeaker
 Speaker .up.|> ISpeaker
-Elevator -----> FloorSelectionPanel
+Elevator o----- FloorSelectionPanel
 
-FloorSelectionPanel -> IButton
-CallElevatorPanel --> IButton
+FloorSelectionPanel o- IButton
+CallElevatorPanel o-- IButton
 
 IDoorDisplay <|.. Display
 IDoorDisplay <|.. Door
 
-Door --> IPressureSensor
-Door --> IOpticalSensor
+Door "1" o-- "1" IPressureSensor
+Door "1" o-- "1" IOpticalSensor
+Door "1" o-right- "1" Timer
+
 OpticalSensor .|> IOpticalSensor
-PressureSensor .|> IPressureSensor
-'TODO: Shared Association pijlen
+PressureSensor ..|> IPressureSensor
 Button .up.|> IButton
-TensionManager --> IClamp
-TensionManager --> ITensionSensor
+TensionManager "1" o-- "*" IClamp
+
+note top of IClamp
+    The reason for multiplicity is
+    that depending on the clients wishes,
+    multiple clamps may be installed.
+end note
+
+TensionManager "1" o-- "1" ITensionSensor
 TensionSensor .up.|> ITensionSensor
 Clamp .up.|> IClamp
 
@@ -228,7 +250,6 @@ Elevator -> User
 
 @startuml Sequence_KeepDoorOpen
 title Sequence Diagram - Keep Door Open
-' TODO: Check methods
 actor User
 entity Door
 entity OpticalSensor
