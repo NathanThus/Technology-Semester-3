@@ -47,6 +47,7 @@ void BreadBaker::HandleEvent(Events ev)
         return;
     }
 
+    // These all exist in a substate.
     if(currentState >= S_CANCEL && currentState <= S_DONE)
     {
         HandleEvent_Processing(ev);
@@ -107,34 +108,6 @@ void BreadBaker::HandleEvent(Events ev)
             }
             break;
         }
-
-        // These all exist in a substate.
-        case S_CANCEL:
-        {
-            HandleEvent_Processing(ev);
-            break;
-        }
-        case S_BAKING:
-        {
-            HandleEvent_Processing(ev);
-            break;
-        }
-        case S_KNEADING:
-        {
-            HandleEvent_Processing(ev);
-            break;
-        }
-        case S_RESTING:
-        {
-            HandleEvent_Processing(ev);
-            break;
-        }
-        case S_DONE:
-        {
-            HandleEvent_Processing(ev);
-            break;
-        }
-
 
         default:
             break;
