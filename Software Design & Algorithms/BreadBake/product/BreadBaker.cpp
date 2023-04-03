@@ -47,6 +47,12 @@ void BreadBaker::HandleEvent(Events ev)
         return;
     }
 
+    if(currentState >= S_CANCEL && currentState <= S_DONE)
+    {
+        HandleEvent_Processing(ev);
+        return;
+    }
+
     switch(currentState)
     {
         case S_STANDBY:
@@ -57,6 +63,88 @@ void BreadBaker::HandleEvent(Events ev)
             }
             break;
         }
+        case S_PROGRAM_SELECTION:
+        {
+            if(ev == TIMER_TIMEOUT)
+            {
+                currentState = S_STANDBY;
+            }
+
+            if(MENU_BUTTON_PRESSED)
+            {
+                if(programID > 5)
+                {
+                    programID = 0;
+                }
+                else
+                {
+                    programID++;
+                }
+            }
+
+            if(ev == START_BUTTON_PRESSED)
+            {
+                currentState = S_RESTING;
+                display.SetCurrentTask(Tasks::WAITING);
+            }
+
+            if(ev == TIMER_UP_BUTTON_PRESSED)
+            {
+                bakeTime += 10;
+                if(bakeTime > 90)
+                {
+                    bakeTime = 90;
+                }
+            }
+
+            if(ev == TIMER_DOWN_BUTTON_PRESSED)
+            {
+                bakeTime -= 10;
+                if(bakeTime < 30)
+                {
+                    bakeTime = 30;
+                }
+            }
+            break;
+        }
+
+        // These all exist in a substate.
+        case S_CANCEL:
+        {
+            HandleEvent_Processing(ev);
+            break;
+        }
+        case S_BAKING:
+        {
+            HandleEvent_Processing(ev);
+            break;
+        }
+        case S_KNEADING:
+        {
+            HandleEvent_Processing(ev);
+            break;
+        }
+        case S_RESTING:
+        {
+            HandleEvent_Processing(ev);
+            break;
+        }
+        case S_DONE:
+        {
+            HandleEvent_Processing(ev);
+            break;
+        }
+
+
+        default:
+            break;
+    }
+}
+
+void BreadBaker::HandleEvent_Processing(Events ev)
+{
+    switch(currentState)
+    {
         case S_BAKING:
         {
             if(ev == TIMER_TIMEOUT)
@@ -157,51 +245,6 @@ void BreadBaker::HandleEvent(Events ev)
             {
                 currentState = S_STANDBY;
             }
-            break;
-        }
-        case S_PROGRAM_SELECTION:
-        {
-            if(ev == TIMER_TIMEOUT)
-            {
-                currentState = S_STANDBY;
-            }
-
-            if(MENU_BUTTON_PRESSED)
-            {
-                if(programID > 5)
-                {
-                    programID = 0;
-                }
-                else
-                {
-                    programID++;
-                }
-            }
-
-            if(ev == START_BUTTON_PRESSED)
-            {
-                currentState = S_RESTING;
-                display.SetCurrentTask(Tasks::WAITING);
-            }
-
-            if(ev == TIMER_UP_BUTTON_PRESSED)
-            {
-                bakeTime += 10;
-                if(bakeTime > 90)
-                {
-                    bakeTime = 90;
-                }
-            }
-
-            if(ev == TIMER_DOWN_BUTTON_PRESSED)
-            {
-                bakeTime -= 10;
-                if(bakeTime < 30)
-                {
-                    bakeTime = 30;
-                }
-            }
-
             break;
         }
         case S_CANCEL:

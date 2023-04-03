@@ -43,6 +43,8 @@ private:
     IStartButtonLed& startButton;
     IEventGenerator& eventGenerator;
     Log& log;
+
+    void HandleEvent_Processing(Events ev);
 };
 
 #endif
