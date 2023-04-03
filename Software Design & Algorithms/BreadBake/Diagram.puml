@@ -1,19 +1,15 @@
 @startuml BreadBake
 Title BreadBake State Diagram
 
-state ProgramSelection
-    ProgramSelection: exit: ChangeProgram()
+[*] -> Standby
 
-[*] -down-> Standby
+state ProgramSelection
+    ProgramSelection : Entry: UpdateProgram(int programID)
 
 Standby -> ProgramSelection : [Event_MenuButton]
-ProgramSelection -> Standby
-ProgramSelection -> Waiting : [Event_StartButton]
-Waiting -> Processing : [TimeElapsed]
+ProgramSelection -> Standby : [Event_MenuButton]
 
-note top of Waiting
-    If the function isn't required, we pass time = -1
-end note
+Standby ---> Processing : [Event_StartButton]
 
 state Processing {
     state Baking
@@ -42,6 +38,10 @@ state Processing {
     MotorLeft -Left-> MotorRight : [TimeElapsed == 1 Minute]
     MotorRight -Right-> MotorLeft : [Time Elapsed == 1 Minute]
     MotorLeft --Down-> [*]
+    }
+
+    state Cancel {
+        Cancel: Exit: Oven.Cancel() \nYeastTray.Cancel() \nExtraTray.Cancel()
     }
 
     [*] -down-> Resting
