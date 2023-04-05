@@ -112,11 +112,8 @@ int main(void)
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
-  timer.ToggleClock(TIMER2);
-  timer.SetPrescaler(PSC_SECOND);
-  timer.SetLimit(ARR_SECOND);
-  timer.EnableInterrupt(TIM2_IRQn);
-  timer.Enable();
+  BasicTimerPackage package = {PSC_SECOND,ARR_SECOND,TIM2_IRQn,TIMER2};
+  timer.EnableAsTimerBase(package);
 
   while (1)
   {
