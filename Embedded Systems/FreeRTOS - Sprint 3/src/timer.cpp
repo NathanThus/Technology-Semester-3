@@ -5,9 +5,18 @@ Timer::Timer(TIM_TypeDef *timer)
     this->timer = timer;
 }
 
+void Timer::EnableAsTimerBase(BasicTimerPackage package)
+{
+    ToggleClock(package.bit);
+    SetPrescaler(package.prescaler);
+    SetLimit(package.limit);
+    EnableInterrupt(package.irq);
+    Enable();
+}
+
 void Timer::ToggleClock(TimerBit bit)
 {
-    RCC->APB1ENR ^= (1 << bit);
+    RCC->APB1ENR |= (1 << bit);
 }
 
 void Timer::DisableClock(TimerBit bit)
