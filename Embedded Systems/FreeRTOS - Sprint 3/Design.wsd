@@ -2,5 +2,31 @@
 Title Class Diagram
 
 Class Timer
+{
+   {method} + void EnableAsTimerBase(BasicTimerPackage package)
+}
+
 Class SimpleWatchdog
+{
+        {method} + SimpleWatchDog(IWDG_TypeDef *iwdg);
+        {method} + void Feed();
+        {method} + void SetTimeout(unsigned long timeout);
+        {method} + void SetPrescaler(WatchDogPrescaler prescaler);
+        {method} + void Start();
+        {method} + void GetTimeout(unsigned long &timeout);
+}
+
+struct TimeBasePackage
+{
+    {field} + uint16_t Prescaler
+    {field} + uint16_t Limit 
+}
+
+struct PWMTimerPackage
+{
+
+}
+
+TimeBasePackage -> Timer
+
 @enduml
