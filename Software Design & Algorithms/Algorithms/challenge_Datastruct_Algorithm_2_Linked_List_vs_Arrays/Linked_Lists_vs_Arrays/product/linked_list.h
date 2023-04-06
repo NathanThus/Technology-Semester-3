@@ -30,7 +30,7 @@ int RemoveDataFromList(LinkedList* list, int index);
 // Returns a -1 if the list is NULL
 int ClearList(LinkedList* list);
 
-// Returns a pointer to the data at the head of the list
+// Returns a pointer to the element at the head of the list
 // Returns NULL if the list is NULL or empty
 void* GetHead(LinkedList* list);
 

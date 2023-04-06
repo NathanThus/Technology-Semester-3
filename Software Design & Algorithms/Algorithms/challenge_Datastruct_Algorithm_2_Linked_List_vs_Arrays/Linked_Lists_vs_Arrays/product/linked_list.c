@@ -96,6 +96,7 @@ int InsertAtIndex(LinkedList* list, void* data, int index)
     if(index == 0)
     {
         AddToHead(list,data);
+        return 0;
     }
 
     Element* elementPtr = GetHead(list);
