@@ -113,7 +113,7 @@ int InsertAtIndex(LinkedList* list, void* data, int index)
         return -1;
     }
 
-    if(elementPtr->Next == NULL)
+    if(previousPtr->Next == NULL)
     {
         AddToListTail(list,data);
     }

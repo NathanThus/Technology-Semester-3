@@ -8,7 +8,7 @@ static const int StartAddress = 1000;
 LinkedList* freeList = NULL;
 LinkedList* allocatedList = NULL;
 
-int MaxSize = 69;
+int MaxSize = 69; // This is overwritten in ConstructMemory
 
 typedef struct  
 {
@@ -39,8 +39,8 @@ void ConstructMemory(int size)
  */
 void DestructMemory()
 {
-    free(freeList);
-    free(allocatedList);
+    DestructList(&freeList);
+    DestructList(&allocatedList);
 }
 
 
@@ -73,15 +73,18 @@ int PrintList(FILE* stream)
             {
                 return -1;
             }
-            fprintf(stream, " %d: addr:%d  size:%d\n",index, data->Address, data->Size);
+            fprintf(stream, "%3d:  addr:%d  size:%4d\n",index, data->Address, data->Size);
             block = GetNext(freeList);
+            index++;
         }
     }
 
-    fprintf(stream, "AllocatedList:\n");
+    // ALLOC
+
+    fprintf(stream, "AllocList:\n");
     fprintf(stream, "----------\n");
 
-        if(GetHead(allocatedList) == NULL)
+    if(GetHead(allocatedList) == NULL)
     {
         fprintf(stream, " <empty>\n");
     }
@@ -96,35 +99,11 @@ int PrintList(FILE* stream)
             {
                 return -1;
             }
-            fprintf(stream, " %d: addr:%d  size:%d\n",index, data->Address, data->Size);
+            fprintf(stream, "%3d:  addr:%d  size:%4d\n",index, data->Address, data->Size);
             block = GetNext(allocatedList);
+            index++;
         }
     }
-    // void* block = GetHead(freeList);
-    // fprintf(stream, "[FREE]\n");
-    // while(block != NULL)
-    // {
-    //     MemoryBlock* data = RetrieveData(freeList, block);
-    //     if(data == NULL)
-    //     {
-    //         return -1;
-    //     }
-    //     fprintf(stream, "ADDR: %d: SIZE: %d\n", data->Address, data->Size);
-    //     block = GetNext(freeList);
-    // }
-
-    // fprintf(stream, "[ALLOC]\n");
-    // void* allocatedBlock = GetHead(allocatedList);
-    // while(allocatedBlock != NULL)
-    // {
-    //     MemoryBlock* data = RetrieveData(allocatedList, allocatedBlock);
-    //     if(data == NULL)
-    //     {
-    //         return -1;
-    //     }
-    //     fprintf(stream, "ADDR: %d: SIZE: %d\n", data->Address, data->Size);
-    //     allocatedBlock = GetNext(allocatedList);
-    // }
 
     return 0;
 }
@@ -134,34 +113,43 @@ int PrintList(FILE* stream)
  * post: if list is NULL, -1 is returned
  *       otherwise the block is inserted in the list and the start address of the block is returned
  */
-int Insert(LinkedList* list, MemoryBlock block)
+int Insert(LinkedList* list, MemoryBlock* block)
 {
     if (list == NULL)
     {
         return -1;
     }
     
-    int index = 0, finalindex = 0;
+    int index = 0, finalindex = -1;
     void* movingPtr = GetHead(list);
-    MemoryBlock* blockPtr = RetrieveData(list, movingPtr);
 
     while(movingPtr != NULL)
     {
-        blockPtr = RetrieveData(list, movingPtr);
-        if(blockPtr->Address > block.Address)
+        MemoryBlock* DataInListPtr = RetrieveData(list, movingPtr);
+        if(DataInListPtr->Address > block->Address)
         {
-            finalindex = index - 1;
+            finalindex = index;
+            break;
         }
         index++;
         movingPtr = GetNext(list);
     }
 
-    if(InsertAtIndex(list, &block, finalindex) == -1)
+    if(finalindex == -1)
     {
-        return -1;
+        AddToListTail(list, block);
+        return block->Address;
+    }
+    else
+    {
+        if(InsertAtIndex(list, block, finalindex) == -1)
+        {   
+            return -1;
+        }
+        return block->Address;
     }
 
-    return block.Address;
+
 }
 
 /* function: ClaimMemory
@@ -171,14 +159,27 @@ int Insert(LinkedList* list, MemoryBlock block)
  */
 int ClaimMemory(int nrofBytes)
 {
+    if(nrofBytes <= 0)
+    {
+        return -1;
+    }
+
+    if(nrofBytes > MaxSize)
+    {
+        printf("[ALLOC] not enough memory for %d byte", nrofBytes);
+        return -1;
+    }
+    
     void* movingPtr = GetHead(freeList);
     MemoryBlock* blockPtr = RetrieveData(freeList, movingPtr);
     int index = 0;
+
     while(movingPtr != NULL)
     {
         if(blockPtr->Size == nrofBytes) // Claim as is
         {
-            AddToListTail(allocatedList,RetrieveData(freeList,movingPtr));
+            MemoryBlock* block = RetrieveData(freeList,movingPtr);
+            Insert(allocatedList, block);
             RemoveDataFromList(freeList,index);
             return blockPtr->Address;
         }
@@ -188,9 +189,10 @@ int ClaimMemory(int nrofBytes)
             MemoryBlock nextFreeListBlock = {blockPtr->Address + nrofBytes, blockPtr->Size - nrofBytes};
 
             RemoveDataFromList(freeList, index);
-            Insert(freeList, nextFreeListBlock);
-            return Insert(allocatedList, newAllocListBlock);
+            Insert(freeList, &nextFreeListBlock);
+            return Insert(allocatedList, &newAllocListBlock);
         }
+
         movingPtr = GetNext(freeList);
         index++;
     }
@@ -202,10 +204,16 @@ int ClaimMemory(int nrofBytes)
  * post: if no memory can be freed return -1
  *       otherwise return 0 if the memory was sucessfully compressed
  */
-int Compress()
+int Compress(MemoryBlock* keepBlock, MemoryBlock* blockToBeCompressed)
 {
-    return -1;
+    if(keepBlock == NULL || blockToBeCompressed == NULL)
+    {
+        return -1;
+    }
+    keepBlock->Size += blockToBeCompressed->Size;
+    return 0;
 }
+
 
 /* function: FreeMemory
  * pre: Parameter addr must match the start of an allocatd memory block. Otherwhise return -1.
@@ -214,25 +222,60 @@ int Compress()
  */
 int FreeMemory(int addr)
 {
-    if(addr <= StartAddress || addr > StartAddress + MaxSize)
+    if(addr >= MaxSize + StartAddress || addr < StartAddress)
     {
         return -1;
     }
 
-    MemoryBlock* block = GetHead(allocatedList);
-
+    void* block = GetHead(allocatedList);
+    int index = 0;
     while(block != NULL)
     {
-        if(block->Address == addr)
+        MemoryBlock* blockPtr = RetrieveData(allocatedList, block);
+        if(blockPtr->Address == addr)
         {
-            // Need to check if we can combine a few blocks.
-            MemoryBlock* freeBlock = GetHead(allocatedList);
+            int bytes = blockPtr->Size;
+            int freeIndex = 0;
+            int finalIndex = -1; // Make sure that there's a save point
+            void* freeBlock = GetHead(freeList); // ElmentPtr
+
+            // Find where we need to insert it into the list, in the ascending order
             while(freeBlock != NULL)
             {
-                return -69;
+                MemoryBlock* freeBlockPtr = RetrieveData(freeList, freeBlock);
+                if(freeBlockPtr->Address > addr)
+                {
+                    finalIndex = freeIndex;
+
+                    break;
+                }
+                freeIndex++;
+                freeBlock = GetNext(freeList);
             }
+
+            // If we're at the end of the list, just add it to the end
+            if(finalIndex == -1)
+            {
+                AddToListTail(freeList, blockPtr);
+            }
+            else
+            {
+                InsertAtIndex(freeList, blockPtr, finalIndex);
+            }
+
+            // Check if we can compress the memory
+            if(Compress(blockPtr, (MemoryBlock*)RetrieveData(freeList,GetLastAccessed(freeList))) == -1)
+            {
+                return -1;
+            }
+
+            // Remove the block from the allocated list
+            RemoveDataFromList(allocatedList, index);
+
+            return bytes;
         }
         block = GetNext(allocatedList);
+        index++;
     }
     return -1;
 }
