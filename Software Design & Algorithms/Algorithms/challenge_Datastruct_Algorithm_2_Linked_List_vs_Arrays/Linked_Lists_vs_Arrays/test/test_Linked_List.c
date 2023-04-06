@@ -203,6 +203,33 @@ void test_InsertAtIndex_NegativeIndex(void)
     TEST_ASSERT_EQUAL_INT(0, DestructList(&list));
 }
 
+void test_InsertAtIndex_IndexTooLarge(void)
+{
+    LinkedList* list = InitializeList(sizeof(int));
+    int data = 1;
+    TEST_ASSERT_EQUAL_INT(0, AddToListTail(list, &data));
+    TEST_ASSERT_EQUAL_INT(-1, InsertAtIndex(list, &data, 1));
+    TEST_ASSERT_EQUAL_INT(0, DestructList(&list));
+}
+
+void test_InsertAtIndex_MemoryManager(void) // TODO: Remove this at a later stage in development.
+{
+    // 2 Lists
+    LinkedList* list = InitializeList(sizeof(int));
+    LinkedList* list2 = InitializeList(sizeof(int));
+
+    int data = 1;
+    AddToListTail(list, &data);
+
+    //CONDITIONS ARE NOW EQUAL TO MEMORY MANAGER
+
+    TEST_ASSERT_EQUAL_INT(0, InsertAtIndex(list, &data, 0));
+    TEST_ASSERT_EQUAL_INT(0, InsertAtIndex(list2, &data, 0));
+
+    DestructList(&list);
+    DestructList(&list2);
+}
+
 int main(int argc, char* argv[])
 {
     UnityBegin();
@@ -234,6 +261,9 @@ int main(int argc, char* argv[])
     MY_RUN_TEST(test_InsertAtIndex_NullList);
     MY_RUN_TEST(test_InsertAtIndex_NullData);
     MY_RUN_TEST(test_InsertAtIndex_NegativeIndex);
+    MY_RUN_TEST(test_InsertAtIndex_IndexTooLarge);
+
+    MY_RUN_TEST(test_InsertAtIndex_MemoryManager);
 
     return UnityEnd();
 }
