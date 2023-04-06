@@ -10,7 +10,7 @@
 static bool MenuPrinting = true;
 
 static const char* MenuStrings[] = {
-    "Allocate Memory",
+    "Allocate mMemory",
     "Free memory",
     "Show lists",
     "Show/hide menu",
