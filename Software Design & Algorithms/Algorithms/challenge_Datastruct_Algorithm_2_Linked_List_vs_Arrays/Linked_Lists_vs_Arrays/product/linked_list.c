@@ -228,7 +228,16 @@ void* GetNext(LinkedList* list)
     return list->LastAccessed;
 }
 
-void* RetrieveData(LinkedList *list, void *data)
+void *GetLastAccessed(LinkedList *list)
+{
+    if (list == NULL)
+    {
+        return NULL;
+    }
+    return list->LastAccessed;
+}
+
+void *RetrieveData(LinkedList *list, void *data)
 {
     if (data == NULL || list == NULL)
     {

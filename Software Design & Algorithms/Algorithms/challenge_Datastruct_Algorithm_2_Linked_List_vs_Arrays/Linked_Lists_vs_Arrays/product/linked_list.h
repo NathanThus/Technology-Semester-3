@@ -38,6 +38,11 @@ void* GetHead(LinkedList* list);
 // Returns NULL if the list is NULL or empty
 void* GetNext(LinkedList* list);
 
+/// @brief Returns a pointer to the last accessed element in the list
+/// @param list The list to access
+/// @return A pointer to the last accessed element in the list
+void* GetLastAccessed(LinkedList* list);
+
 // Returns a pointer to the data
 // Returns NULL if the list is NULL or empty
 void* RetrieveData(LinkedList* list, void* data);
