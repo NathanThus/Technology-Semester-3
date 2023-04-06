@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "timer.hpp"
+#include "Pin.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,16 +113,46 @@ int main(void)
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
-  BasicTimerPackage package = {PSC_SECOND,ARR_SECOND,TIM2_IRQn,TIMER2};
-  timer.EnableAsTimerBase(package);
+  // BasicTimerPackage timerPackage = {PSC_SECOND, 200, TIMER2};
+  // PWMOutputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMOutput,OCM_TYPE_PWM1, 1280};
+  // timer.EnableAsPWMOutput(PWMPackage);
+
+  /// TIMER
+
+  // RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+  // TIM2->PSC = 7200; //72?
+  // TIM2->EGR |= TIM_EGR_UG;
+  // TIM2->SR = ~TIM_SR_UIF;
+  // TIM2->ARR = 200;
+  // TIM2->CCMR1 = (TIM2->CCMR1 & ~TIM_CCMR1_OC1M_Msk) | (0b0110 << TIM_CCMR1_OC1M_Pos);
+  // TIM2->CCER = (TIM2->CCER & ~TIM_CCER_CC1E_Msk) | (0b1 << TIM_CCER_CC1E_Pos);
+  // TIM2->CR1 = (TIM2->CR1 & ~TIM_CR1_CEN_Msk) | (0b1 << TIM_CR1_CEN_Pos);
+
+  /// OUTPUT
+
+  // //Pa0
+  // GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER0) | (0b10 << GPIO_MODER_MODER0_Pos);
+  // GPIOA->AFR[0] = (GPIOA->AFR[0] & ~GPIO_AFRL_AFRL0) | (0B0001 << GPIO_AFRL_AFRL0_Pos);
+
 
   while (1)
   {
     /* USER CODE END WHILE */
-    snprintf(msgBuf, MSGBUFSIZE, "%s", "In loop!\r\n");
-    HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-    HAL_Delay(1000);
+    // snprintf(msgBuf, MSGBUFSIZE, "%d\n", timer.GetCounter());
+    // HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+    // HAL_Delay(20);
     /* USER CODE BEGIN 3 */
+
+    for (int i = 0; i < 200; i++)
+    {
+      TIM2->CCR1 = i;
+      HAL_Delay(20);
+    }
+    for (int i = 200; i > 0; i--)
+    {
+      TIM2->CCR1 = i;
+      HAL_Delay(20);
+    }
   }
   /* USER CODE END 3 */
 }

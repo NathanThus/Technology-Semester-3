@@ -6,6 +6,27 @@
 #define PSC_SECOND (7200 - 1)
 #define ARR_SECOND 10000
 
+enum OCM_Type
+{
+    OCM_TYPE_Frozen = 0,
+    OCM_TYPE_ActiveOnMatch = 1,
+    OCM_TYPE_InactiveOnMatch = 2,
+    OCM_TYPE_ToggleOnMatch = 3,
+    OCM_TYPE_ForceInactive = 4,
+    OCM_TYPE_ForceActive = 5,
+    OCM_TYPE_PWM1 = 6,
+    OCM_TYPE_PWM2 = 7,
+};
+
+enum CC_ChannelType
+{
+    CC_CHANNELTYPE_Input = 0,
+    CC_CHANNELTYPE_Output = 1,
+    CC_CHANNELTYPE_PWMOutput = 2,
+    CC_CHANNELTYPE_PWMInput = 3,
+};
+
+/// @brief The timer bit enum, used to toggle the clock for the timer.
 enum TimerBit
 {
     TIMER2 = 0,
@@ -13,18 +34,56 @@ enum TimerBit
     TIMER4 = 2,
 };
 
+/// @brief The timer package struct, used to pass the timer settings to the timer class.
 struct BasicTimerPackage
 {
     uint16_t prescaler;
     uint16_t limit;
-    IRQn_Type irq;
     TimerBit bit;
+
+    BasicTimerPackage(uint16_t prescaler, uint16_t limit, TimerBit bit)
+    {
+        this->prescaler = prescaler;
+        this->limit = limit;
+        this->bit = bit;
+    }
 };
 
-struct PWMTimerPackage : public BasicTimerPackage
+/// @brief The timer base package struct, used to pass the timer base settings to the timer class.
+struct TimerBasePackage : public BasicTimerPackage
 {
-    uint16_t pulse;
+    IRQn_Type irq;
+
+    TimerBasePackage(uint16_t prescaler, uint16_t limit, TimerBit bit, IRQn_Type irq) : BasicTimerPackage(prescaler, limit, bit)
+    {
+        this->irq = irq;
+    }
 };
+
+struct PWMOutputPackage : public BasicTimerPackage
+{
+    uint16_t channel;
+    CC_ChannelType type;
+    OCM_Type ocm;
+    uint16_t dutyCycle;
+
+    PWMOutputPackage(uint16_t prescaler, uint16_t limit, TimerBit bit, uint16_t channel, CC_ChannelType type, OCM_Type ocm, uint16_t dutyCycle) : BasicTimerPackage(prescaler, limit, bit)
+    {
+        this->channel = channel;
+        this->type = type;
+        this->ocm = ocm;
+        this->dutyCycle = dutyCycle;
+    }
+
+    PWMOutputPackage(BasicTimerPackage package, uint16_t channel, CC_ChannelType type, OCM_Type ocm, uint16_t dutyCycle) : BasicTimerPackage(package.prescaler, package.limit, package.bit)
+    {
+        this->channel = channel;
+        this->type = type;
+        this->ocm = ocm;
+        this->dutyCycle = dutyCycle;
+    }
+};
+
 
 class Timer
 {
@@ -33,7 +92,18 @@ class Timer
 
     /// @brief Enables the timer as a timer base. 
     /// @param package The package containing the timer base settings.
-    void EnableAsTimerBase(BasicTimerPackage package);
+    void EnableAsTimerBase(TimerBasePackage package);
+
+    /// @brief Enables the timer as a count pulse.
+    /// @param package The package containing the count pulse settings.
+    void EnableAsCountPulse(BasicTimerPackage package);
+
+    void EnableAsPWMOutput(PWMOutputPackage package);
+
+    /// @brief Gets the counter value of the timer.
+    /// @return The counter value.
+    int GetCounter();
+
     /// @brief Resets the interrupt for the timer.
     void ResetInterrupt();
 
@@ -43,15 +113,27 @@ class Timer
     /// @brief Toggles the clock for the timer.
     /// @param bit The bit to toggle.
     void ToggleClock(TimerBit bit);
+
     /// @brief Disables the clock for the timer.
     /// @param bit The bit to disable.
     void DisableClock(TimerBit bit);
+
     /// @brief Sets the prescaler for the timer.
     /// @param prescaler The prescaler value.
     void SetPrescaler(uint16_t prescaler);
+
     /// @brief Sets the limit for the timer.
     /// @param limit The limit value.
     void SetLimit(uint16_t limit);
+
+    /// @brief Sets the timer to external clock mode.
+    void SetExternalClockMode();
+
+    void SetCaptureChannel(uint16_t channel, CC_ChannelType type);
+    void SetOutputCompareMode(OCM_Type type);
+    void SetCaptureCompareValue(uint16_t value);
+    void SetCaptureCompareOutput(uint16_t channel, uint16_t value);
+
     /// @brief Enables the interrupt for the timer.
     /// @param irq The interrupt to enable.
     void EnableInterrupt(IRQn_Type irq);

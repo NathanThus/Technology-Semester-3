@@ -22,10 +22,10 @@ struct TimeBasePackage
     {field} + uint16_t Limit 
 }
 
-struct PWMTimerPackage
-{
-
-}
+' struct PWMTimerPackage
+' {
+'     {field} + uint16_t Pulse;
+' }
 
 TimeBasePackage -> Timer
 
