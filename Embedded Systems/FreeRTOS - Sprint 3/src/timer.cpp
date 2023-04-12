@@ -21,7 +21,6 @@ void Timer::EnableAsCountPulse(BasicTimerPackage package)
     SetLimit(package.limit);
     SetExternalClockMode();
     Enable();
-
 }
 
 void Timer::EnableAsPWMOutput(PWMOutputPackage package)
