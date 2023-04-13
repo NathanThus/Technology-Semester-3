@@ -102,10 +102,11 @@ int InsertAtIndex(LinkedList* list, void* data, int index)
     Element* elementPtr = GetHead(list);
     Element* previousPtr = NULL;
 
-    for (int i = 0; (i < index && elementPtr != NULL); i++)
+    for (int i = 0; i < index; i++)
     {
         previousPtr = elementPtr;
-        elementPtr = GetNext(list);   
+        elementPtr = GetNext(list);
+        break;   
     }
     
     if(elementPtr == NULL)
@@ -174,6 +175,8 @@ int RemoveDataFromList(LinkedList* list, int index)
     Element* elementToRemove = GetNext(list);
     elementPtr->Next = elementToRemove->Next;
     FreePointer(elementToRemove);
+
+    list->LastAccessed = elementPtr;
 
     return 1;
 }
