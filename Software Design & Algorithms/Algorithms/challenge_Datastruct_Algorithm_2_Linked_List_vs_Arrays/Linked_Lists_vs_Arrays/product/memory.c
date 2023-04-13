@@ -2,6 +2,7 @@
 #include "linked_list.h"
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 static const int StartAddress = 1000;
 
@@ -56,11 +57,11 @@ int PrintList(FILE* stream)
         return -1;
     }
 
-    fprintf(stream, "FreeList:\n");
-    fprintf(stream, "---------\n");
+    fprintf(stream, "FreeList:\r\n");
+    fprintf(stream, "---------\r\n");
     if(GetHead(freeList) == NULL)
     {
-        fprintf(stream, " <empty>\n");
+        fprintf(stream, " <empty>\r\n");
     }
     else
     {
@@ -73,7 +74,7 @@ int PrintList(FILE* stream)
             {
                 return -1;
             }
-            fprintf(stream, "%3d:  addr:%d  size:%4d\n",index, data->Address, data->Size);
+            fprintf(stream, "%4d:  addr:%d  size:%4d\r\n",index, data->Address, data->Size);
             block = GetNext(freeList);
             index++;
         }
@@ -81,12 +82,12 @@ int PrintList(FILE* stream)
 
     // ALLOC
 
-    fprintf(stream, "AllocList:\n");
-    fprintf(stream, "----------\n");
+    fprintf(stream, "AllocList:\r\n");
+    fprintf(stream, "----------\r\n");
 
     if(GetHead(allocatedList) == NULL)
     {
-        fprintf(stream, " <empty>\n");
+        fprintf(stream, " <empty>\r\n");
     }
     else
     {
@@ -99,7 +100,7 @@ int PrintList(FILE* stream)
             {
                 return -1;
             }
-            fprintf(stream, "%3d:  addr:%d  size:%4d\n",index, data->Address, data->Size);
+            fprintf(stream, "%4d:  addr:%d  size:%4d\r\n",index, data->Address, data->Size);
             block = GetNext(allocatedList);
             index++;
         }
@@ -125,31 +126,26 @@ int Insert(LinkedList* list, MemoryBlock* block)
 
     while(movingPtr != NULL)
     {
-        MemoryBlock* DataInListPtr = RetrieveData(list, movingPtr);
-        if(DataInListPtr->Address > block->Address)
+        MemoryBlock* movingBlock = RetrieveData(list, movingPtr);
+        if(movingBlock->Address > block->Address)
         {
             finalindex = index;
             break;
         }
-        index++;
         movingPtr = GetNext(list);
+        index++;
     }
 
     if(finalindex == -1)
     {
         AddToListTail(list, block);
-        return block->Address;
     }
     else
     {
-        if(InsertAtIndex(list, block, finalindex) == -1)
-        {   
-            return -1;
-        }
-        return block->Address;
+        InsertAtIndex(list, block, finalindex);
     }
 
-
+    return block->Address;
 }
 
 /* function: ClaimMemory
@@ -159,29 +155,26 @@ int Insert(LinkedList* list, MemoryBlock* block)
  */
 int ClaimMemory(int nrofBytes)
 {
-    if(nrofBytes <= 0)
-    {
-        return -1;
-    }
-
     if(nrofBytes > MaxSize)
     {
-        printf("[ALLOC] not enough memory for %d byte", nrofBytes);
         return -1;
     }
     
     void* movingPtr = GetHead(freeList);
-    MemoryBlock* blockPtr = RetrieveData(freeList, movingPtr);
     int index = 0;
 
     while(movingPtr != NULL)
     {
+        MemoryBlock* blockPtr = RetrieveData(freeList, movingPtr);
         if(blockPtr->Size == nrofBytes) // Claim as is
         {
             MemoryBlock* block = RetrieveData(freeList,movingPtr);
+            int address = block->Address;
+
             Insert(allocatedList, block);
+            
             RemoveDataFromList(freeList,index);
-            return blockPtr->Address;
+            return address;
         }
         else if(blockPtr->Size > nrofBytes) // Split the block
         {
@@ -189,8 +182,11 @@ int ClaimMemory(int nrofBytes)
             MemoryBlock nextFreeListBlock = {blockPtr->Address + nrofBytes, blockPtr->Size - nrofBytes};
 
             RemoveDataFromList(freeList, index);
+
             Insert(freeList, &nextFreeListBlock);
-            return Insert(allocatedList, &newAllocListBlock);
+            
+            int address = Insert(allocatedList, &newAllocListBlock);
+            return address;
         }
 
         movingPtr = GetNext(freeList);
@@ -198,22 +194,6 @@ int ClaimMemory(int nrofBytes)
     }
     return -1;
 }
-
-/* function: Compress
- * pre: -
- * post: if no memory can be freed return -1
- *       otherwise return 0 if the memory was sucessfully compressed
- */
-int Compress(MemoryBlock* keepBlock, MemoryBlock* blockToBeCompressed)
-{
-    if(keepBlock == NULL || blockToBeCompressed == NULL)
-    {
-        return -1;
-    }
-    keepBlock->Size += blockToBeCompressed->Size;
-    return 0;
-}
-
 
 /* function: FreeMemory
  * pre: Parameter addr must match the start of an allocatd memory block. Otherwhise return -1.
@@ -236,8 +216,8 @@ int FreeMemory(int addr)
         {
             int bytes = blockPtr->Size;
             int freeIndex = 0;
-            int finalIndex = -1; // Make sure that there's a save point
-            void* freeBlock = GetHead(freeList); // ElmentPtr
+            int finalIndex = -1;
+            void* freeBlock = GetHead(freeList);
 
             // Find where we need to insert it into the list, in the ascending order
             while(freeBlock != NULL)
@@ -246,7 +226,6 @@ int FreeMemory(int addr)
                 if(freeBlockPtr->Address > addr)
                 {
                     finalIndex = freeIndex;
-
                     break;
                 }
                 freeIndex++;
@@ -262,14 +241,34 @@ int FreeMemory(int addr)
             {
                 InsertAtIndex(freeList, blockPtr, finalIndex);
             }
-
-            // Check if we can compress the memory
-            if(Compress(blockPtr, (MemoryBlock*)RetrieveData(freeList,GetLastAccessed(freeList))) == -1)
+            
+            void* nextBlock = NULL;
+            bool madeChange = true;
+            while(madeChange)
             {
-                return -1;
+                madeChange = false;
+
+                freeBlock = GetHead(freeList);
+                freeIndex = 1;
+                nextBlock = GetNext(freeList);
+                while (nextBlock != NULL)
+                {
+                    MemoryBlock* freeBlockPtr = RetrieveData(freeList, freeBlock);
+                    MemoryBlock* nextBlockPtr = RetrieveData(freeList, nextBlock);
+
+                    if(freeBlockPtr->Address + freeBlockPtr->Size == nextBlockPtr->Address)
+                    {
+                        freeBlockPtr->Size += nextBlockPtr->Size;
+                        RemoveDataFromList(freeList, freeIndex);
+                        madeChange = true;
+                    }
+
+                    freeBlock = nextBlock;
+                    nextBlock = GetNext(freeList);
+                    freeIndex++;
+                }
             }
 
-            // Remove the block from the allocated list
             RemoveDataFromList(allocatedList, index);
 
             return bytes;
