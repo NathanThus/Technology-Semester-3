@@ -255,7 +255,10 @@ int FreeMemory(int addr)
                 {
                     MemoryBlock* freeBlockPtr = RetrieveData(freeList, freeBlock);
                     MemoryBlock* nextBlockPtr = RetrieveData(freeList, nextBlock);
-
+                    if(freeBlockPtr == NULL || nextBlockPtr == NULL)
+                    {
+                        return 0;
+                    }
                     if(freeBlockPtr->Address + freeBlockPtr->Size == nextBlockPtr->Address)
                     {
                         freeBlockPtr->Size += nextBlockPtr->Size;
