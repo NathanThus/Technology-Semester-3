@@ -75,30 +75,44 @@ int mystack_pop(StackMeta_t *stack, void* obj)
 		return -1;
 	}
 
-	if(stack->stack == NULL) // stack is empty
+	if(stack->stack == NULL)
 	{
 		return -1;
 	}
 
 	StackObject_t* headPtr = stack->stack;
-	StackObject_t *nextPtr = stack->stack->next;
+	StackObject_t* nextPtr = headPtr->next;
 
-	stack->stack = nextPtr;
 	memcpy(obj, headPtr->obj, stack->objsize);
-	free(headPtr);
+	stack->stack = nextPtr;
+	free (headPtr->obj);
+	free (headPtr);
 
 	stack->numelem--;
+	
 	return 0;
 }
 
 void mystack_destroy(StackMeta_t *stack)
 {
-	if(stack == NULL)
+	if (stack == NULL)
+    {
+        return;
+    }
+
+	// Clear the Stack
+
+	StackObject_t* headPtr = stack->stack;
+	StackObject_t* nextPtr = NULL;
+
+	while(headPtr != NULL)
 	{
-		return;
+		nextPtr = headPtr->next;
+		free(headPtr->obj);
+		free(headPtr);
+		headPtr = nextPtr;
 	}
 
-	free(stack->stack);
 	free(stack);
 }
 
