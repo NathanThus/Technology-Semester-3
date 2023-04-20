@@ -61,7 +61,7 @@ int myqueue_dequeue(QueueMeta_t *queue, void *obj)
 		}
 	}
 
-	return 0;
+	return mystack_pop(queue->stack_out, obj);
 }
 
 
