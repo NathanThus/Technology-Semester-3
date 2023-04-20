@@ -47,7 +47,7 @@ int GetLimitedInt(const char* message, const char* items[], int nrItems)
         {
             for (int i = 1; i <= nrItems; i++)
             {
-                printf("  [%d] %s\n", i, items[i-1]);
+                printf("  [%d] %s\r\n", i, items[i-1]);
             }
         }
         choice = GetInt(message);
@@ -60,7 +60,7 @@ MenuOptions GetMenuChoice()
 {
     if (MenuPrinting)
     {
-        printf("\n\nMENU\n====\n");
+        printf("\r\n\r\nMENU\r\n====\r\n");
     }
 
     return (MenuOptions)GetLimitedInt("choice: ", MenuStrings, NrMenuStrings);
@@ -71,12 +71,12 @@ void ToggleMenuPrinting()
     MenuPrinting = !MenuPrinting;
     if (!MenuPrinting)
     {
-        printf("printing of MENU is diabled\n");
+        printf("printing of MENU is diabled\r\n");
     }
 }
 
 void PrintProgramHeader()
 {
-    printf("PRC 'MemoryC' (version 5)\n"
-           "-------------------------\n");
+    printf("PRC 'MemoryC' (version 5)\r\n"
+           "-------------------------\r\n");
 }

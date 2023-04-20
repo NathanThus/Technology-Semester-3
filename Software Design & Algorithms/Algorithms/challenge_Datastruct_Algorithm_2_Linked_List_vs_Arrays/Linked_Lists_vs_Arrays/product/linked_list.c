@@ -16,6 +16,7 @@ struct linkedList
     int ObjectSize;
     Element* Head;
     Element* LastAccessed;
+    int NumberOfItems;
 };
 
 
@@ -28,6 +29,8 @@ LinkedList* InitializeList(int objectSize)
     LinkedList *this = malloc(sizeof(LinkedList));
     this->ObjectSize = objectSize;
     this->Head = NULL;
+    this->LastAccessed = NULL;
+    this->NumberOfItems = 0;
     return this;
 }
 
@@ -67,6 +70,63 @@ int AddToListTail(LinkedList* list, void* data)
     AllocatePointer(elementPtr->Next, data, list->ObjectSize);
 
     list->LastAccessed = elementPtr;
+
+    list->NumberOfItems++;
+
+    return 0;
+}
+
+int AddToHead(LinkedList *list, void *data)
+{
+    if (data == NULL || list == NULL)
+    {
+        return -1;
+    }
+
+    Element* newHead = malloc(sizeof(Element));
+    AllocatePointer(newHead, data, list->ObjectSize);
+    newHead->Next = list->Head;
+    list->Head = newHead;
+
+    list->NumberOfItems++;
+
+    return 0;
+}
+
+int InsertAtIndex(LinkedList* list, void* data, int index)
+{
+    if(list == NULL || data == NULL || index < 0)
+    {
+        return -1;
+    }
+
+    if(index > list->NumberOfItems)
+    {
+        return -1;
+    }
+
+    if(index == 0)
+    {
+        return AddToHead(list, data);
+    }
+
+
+    Element* elementPtr = GetHead(list); 
+    Element* previousPtr = NULL;
+
+    for (int i = 0; i < index; i++)
+    {
+        previousPtr = elementPtr;
+        elementPtr = elementPtr->Next;
+    }
+
+    Element* newElement = malloc(sizeof(Element));
+    AllocatePointer(newElement, data, list->ObjectSize);
+    newElement->Next = elementPtr;
+    previousPtr->Next = newElement;
+
+    list->LastAccessed = newElement;
+    list->NumberOfItems++;
 
     return 0;
 }
@@ -118,6 +178,8 @@ int RemoveDataFromList(LinkedList* list, int index)
     elementPtr->Next = elementToRemove->Next;
     FreePointer(elementToRemove);
 
+    list->LastAccessed = elementPtr;
+    list->NumberOfItems--;
     return 1;
 }
 
@@ -134,13 +196,13 @@ int ClearList(LinkedList* list)
     }
 
     list->LastAccessed = NULL;
-
+    list->NumberOfItems = 0;
     return 0;
 }
 
 int DestructList(LinkedList** list)
 {
-    if(*list == NULL)
+    if(list == NULL)
     {
         return -1;
     }
@@ -148,7 +210,6 @@ int DestructList(LinkedList** list)
     ClearList(*list);
     free(*list);
 
-    *list = NULL;
     return 0;
 }
 
@@ -169,6 +230,15 @@ void* GetNext(LinkedList* list)
         return NULL;
     }
     list->LastAccessed = list->LastAccessed->Next;
+    return list->LastAccessed;
+}
+
+void* GetLastAccessed(LinkedList *list)
+{
+    if (list == NULL)
+    {
+        return NULL;
+    }
     return list->LastAccessed;
 }
 

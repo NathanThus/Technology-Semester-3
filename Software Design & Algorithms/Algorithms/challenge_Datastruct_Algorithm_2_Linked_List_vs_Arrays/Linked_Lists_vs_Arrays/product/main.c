@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
     if (argc != 1)
     {
-        fprintf(stderr, "%s: argc=%d\n", argv[0], argc);
+        fprintf(stderr, "%s: argc=%d\r\n", argv[0], argc);
     }
 
     /* initialisate van lijsten dus freeList bevat alle geheugen en allocList is
@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
             int addr = ClaimMemory(nrofBytes);
             if (addr == -1)
             {
-                printf("[ALLOC] not enough memory for %d byte\n", nrofBytes);
+                printf("[ALLOC] not enough memory for %d byte\r\n", nrofBytes);
             }
             else
             {
-                printf("[ALLOC] address: %4d (%d byte)\n", addr, nrofBytes);
+                printf("[ALLOC] address: %4d (%d byte)\r\n", addr, nrofBytes);
             }
         }
         break;
@@ -48,11 +48,11 @@ int main(int argc, char* argv[])
             int nrofBytes = FreeMemory(addr);
             if (nrofBytes == -1)
             {
-                printf("[FREE]  address: %4d was not allocated\n", addr);
+                printf("[FREE]  address: %4d was not allocated\r\n", addr);
             }
             else
             {
-                printf("[FREE]  address: %4d (%d byte)\n", addr, nrofBytes);
+                printf("[FREE]  address: %4d (%d byte)\r\n", addr, nrofBytes);
             }
         }
         break;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
             // nothing to do here
             break;
         default:
-            printf("invalid choice: %d\n", choice);
+            printf("invalid choice: %d\r\n", choice);
             break;
         }
     }
