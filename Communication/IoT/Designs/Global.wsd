@@ -1,0 +1,36 @@
+@startuml Data
+title Data Packet
+
+class LightPacket
+{
+    {field} + int LightState
+}
+
+class Co2Packet
+{
+    {field} + int Co2Level
+}
+
+class Packet
+{
+    {field} + int packetID
+}
+
+Packet <|-- LightPacket
+Packet <|-- Co2Packet
+
+@enduml
+
+@startuml Network
+title Network Diagram
+
+nwdiag {
+    network Internet {
+        Server [shape = database]
+        ESP32_1 [shapre = node]
+        ESP32_2 [shapre = node]
+        ESP32_3 [shapre = node]
+    }
+}
+
+@enduml
