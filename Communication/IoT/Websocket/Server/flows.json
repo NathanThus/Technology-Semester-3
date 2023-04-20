@@ -1,0 +1,55 @@
+[
+    {
+        "id": "dfc5cd496b524e6d",
+        "type": "tab",
+        "label": "HTTP Post Receive Only",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0607ac1df0d4f0ac",
+        "type": "http in",
+        "z": "dfc5cd496b524e6d",
+        "name": "",
+        "url": "/temp",
+        "method": "post",
+        "upload": true,
+        "swaggerDoc": "",
+        "x": 420,
+        "y": 340,
+        "wires": [
+            [
+                "09fc235fe8c21636",
+                "5e3786d4e3c9f861"
+            ]
+        ]
+    },
+    {
+        "id": "09fc235fe8c21636",
+        "type": "debug",
+        "z": "dfc5cd496b524e6d",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "5e3786d4e3c9f861",
+        "type": "http response",
+        "z": "dfc5cd496b524e6d",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 600,
+        "y": 300,
+        "wires": []
+    }
+]
