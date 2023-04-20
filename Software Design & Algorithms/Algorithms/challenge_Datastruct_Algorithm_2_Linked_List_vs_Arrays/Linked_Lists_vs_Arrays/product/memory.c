@@ -249,8 +249,19 @@ int FreeMemory(int addr)
                 madeChange = false;
 
                 freeBlock = GetHead(freeList);
-                freeIndex = 1;
+                if(freeBlock == NULL)
+                {
+                    return 0;
+                }
+                
                 nextBlock = GetNext(freeList);
+                if(nextBlock == NULL)
+                {
+                    return 0;
+                }
+
+                freeIndex = 1;
+
                 while (nextBlock != NULL)
                 {
                     MemoryBlock* freeBlockPtr = RetrieveData(freeList, freeBlock);
@@ -259,6 +270,7 @@ int FreeMemory(int addr)
                     {
                         return 0;
                     }
+
                     if(freeBlockPtr->Address + freeBlockPtr->Size == nextBlockPtr->Address)
                     {
                         freeBlockPtr->Size += nextBlockPtr->Size;
