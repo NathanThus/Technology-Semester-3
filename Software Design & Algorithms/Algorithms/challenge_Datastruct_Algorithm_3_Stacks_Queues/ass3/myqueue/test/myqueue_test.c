@@ -55,6 +55,12 @@ void test_enqueue_dequeue_Multiple(void)
 
 	TEST_ASSERT_EQUAL_INT(0, mystack_nofelem(queue->stack_in));
 	TEST_ASSERT_EQUAL_INT(4, mystack_nofelem(queue->stack_out));
+
+	TEST_ASSERT_EQUAL_INT(0, myqueue_dequeue(queue, &data));
+	TEST_ASSERT_EQUAL_INT(0, myqueue_dequeue(queue, &data));
+	TEST_ASSERT_EQUAL_INT(0, myqueue_dequeue(queue, &data));
+
+	myqueue_delete(queue);
 }
 
 void test_enqueue_dequeue_NullPtr(void)
