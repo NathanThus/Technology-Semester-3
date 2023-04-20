@@ -182,6 +182,24 @@ void test_InsertAtIndex_Valid(void)
     TEST_ASSERT_EQUAL_INT(0, DestructList(&list));
 }
 
+void test_InsertAtIndex_Valid_Additional(void)
+{
+    LinkedList* list = InitializeList(sizeof(int));
+    int data = 1;
+    TEST_ASSERT_EQUAL_INT(0, AddToListTail(list, &data));
+    data = 2;
+    TEST_ASSERT_EQUAL_INT(0, AddToListTail(list, &data));
+    data = 3;
+    TEST_ASSERT_EQUAL_INT(0, AddToListTail(list, &data));
+    data = 4;
+    TEST_ASSERT_EQUAL_INT(0, InsertAtIndex(list, &data, 2));
+    TEST_ASSERT_EQUAL_INT(1, *(int*)RetrieveData(list, GetHead(list)));
+    TEST_ASSERT_EQUAL_INT(2, *(int*)RetrieveData(list, GetNext(list)));
+    TEST_ASSERT_EQUAL_INT(4, *(int*)RetrieveData(list, GetNext(list)));
+    TEST_ASSERT_EQUAL_INT(3, *(int*)RetrieveData(list, GetNext(list)));
+    TEST_ASSERT_EQUAL_INT(0, DestructList(&list)); 
+}
+
 void test_InsertAtIndex_NullList(void)
 {
     TEST_ASSERT_EQUAL_INT(-1, InsertAtIndex(NULL, NULL, 0));
@@ -212,7 +230,7 @@ void test_InsertAtIndex_IndexTooLarge(void)
     TEST_ASSERT_EQUAL_INT(0, DestructList(&list));
 }
 
-void test_InsertAtIndex_MemoryManager(void) // TODO: Remove this at a later stage in development.
+void test_InsertAtIndex_MemoryManager(void)
 {
     // 2 Lists
     LinkedList* list = InitializeList(sizeof(int));
@@ -258,6 +276,7 @@ int main(int argc, char* argv[])
     MY_RUN_TEST(test_AddToHead_NullData);
 
     MY_RUN_TEST(test_InsertAtIndex_Valid);
+    MY_RUN_TEST(test_InsertAtIndex_Valid_Additional);
     MY_RUN_TEST(test_InsertAtIndex_NullList);
     MY_RUN_TEST(test_InsertAtIndex_NullData);
     MY_RUN_TEST(test_InsertAtIndex_NegativeIndex);
