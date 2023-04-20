@@ -230,7 +230,7 @@ void test_InsertAtIndex_IndexTooLarge(void)
     TEST_ASSERT_EQUAL_INT(0, DestructList(&list));
 }
 
-void test_InsertAtIndex_MemoryManager(void) // TODO: Remove this at a later stage in development.
+void test_InsertAtIndex_MemoryManager(void)
 {
     // 2 Lists
     LinkedList* list = InitializeList(sizeof(int));
