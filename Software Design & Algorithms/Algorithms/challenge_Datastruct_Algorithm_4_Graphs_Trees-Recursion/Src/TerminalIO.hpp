@@ -11,5 +11,5 @@ public:
     int GetNumberOfNodes(FILE* stream);
     int GetNumberOfConnections(FILE* stream);
     
-    void PrintResult(int* result, int numberOfTestCases);
+    void PrintResult(FILE* stream, int *result, int numberOfTestCases);
 };
