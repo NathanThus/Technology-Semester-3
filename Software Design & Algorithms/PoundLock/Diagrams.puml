@@ -13,6 +13,15 @@ skinParam actorStyle awesome
 @startuml Class Diagram
 title Class Diagram
 
+Class Controller
+{
+    {method} + LowerWaterLevel()
+    {method} + RaiseWaterLevel()
+    {method} + EmergencyStop()
+    {method} + CeaseEmergency()
+    {method} + AllowSailingIn()
+}
+
 Class ControlPanel
 {
     {method} + SwitchToLow()
@@ -26,13 +35,14 @@ Class Valve
 {
     {method} + Open()
     {method} + Close()
+    {method} + Stop()
 }
 
 Class Gate
 {
     {method} + Open()
     {method} + Close()
-
+    {method} + Stop()
     {method} - OpenValve(ValveID id)
     {method} - CloseValve(ValveID id)
 }
@@ -46,6 +56,12 @@ Class TrafficLight
 Class WaterLevelSensor
 {
     {method} + Measure() : WaterLevel
+}
+
+class Motor
+{
+    {method} + Start()
+    {method} + Stop()
 }
 
 enum WaterLevel
@@ -63,31 +79,163 @@ enum ValveID
     Middle
     Low
 }
-
-ControlPanel --> Gate:  > 2 *
-Gate --> WaterLevelSensor
+Controller --> ControlPanel : 1..1
+Controller --> Gate : 1..2
+Gate --> WaterLevelSensor : 1..1
 WaterLevelSensor --> WaterLevel
-Gate --> ValveID
-Gate --> TrafficLight : > 2 * 
-Gate --> Valve : > 3 * 
+Valve --> ValveID
+Gate *-- TrafficLight : 1..2
+Gate *-- Valve : 1..3
+Gate *-- Motor : 1..1
 
-Note right of Gate : Has two Traffic lights:\nInnerTrafficLight & OuterTrafficLight
 @enduml
 
 @startuml StateDiagram
 title State Diagram
-
 state Emergency
 
-[*] -> Idle
-Emergency -> Idle : AlarmRecoveryIsPressed
-Idle -> Emergency : EmergencyButtonIsPressed
-Idle --> Start
+state NormalOperation {
+    
+    [*] --> Idle
+    Idle --> LowerWaterLevel : LowerWaterLevelIsPressed
+    Idle --> RaiseWaterLevel : RaiseWaterLevelIsPressed
+    RaiseWaterLevel --> Idle : GateIsOpen
+    LowerWaterLevel --> Idle : GateIsOpen   
 
-Start --> GoToLow : LowStartButtonIsPressed
-Start --> GoToHigh : HighStartButtonIsPressed
+    state RaiseWaterLevel{
+        R_CloseLowGate --> R_OpenLowValve
+        R_OpenLowValve --> R_OpenLowValve : WaterLevel != Above_Middle_Valve
+        R_OpenLowValve --> R_OpenMiddleValve : WaterLevel == Above_Middle_Valve
+        R_OpenMiddleValve --> R_OpenMiddleValve : WaterLevel != Above_High_Valve
+        R_OpenMiddleValve --> R_OpenHighValve : WaterLevel == Above_High_Valve
+        R_OpenHighValve --> R_CloseAllValves : WaterLevel == High
+        R_CloseAllValves --> R_OpenHighGate 
+    }
 
-GoToHigh --> Emergency : EmergencyButtonIsPressed
-GotoLow --> Emergency : EmergencyButtonIsPressed
+    state LowerWaterLevel{
+        L_CloseHighGate --> L_OpenLowValve
+        L_OpenLowValve --> L_OpenLowValve : WaterLevel != Low
+        L_OpenLowValve --> L_OpenLowGate : WaterLevel == Low
+    }
+
+    NormalOperation -> Emergency : EmergencyStopIsPressed
+    Emergency -> NormalOperation : CeaseEmergencyIsPressed
+
+    Idle --> AllowSailingIn : AllowSailingInIsPressed
+    AllowSailingIn -> Idle : AllowSailingInIsPressed
+}
+
+@enduml
+
+@startuml Sequence_Emergency
+title Sequence Diagram Emergency
+
+Actor Operator
+Entity ControlPanel
+Entity Gate
+Entity Valve
+Entity TrafficLight
+Entity WaterLevelSensor
+Entity Motor
+
+Operator -> ControlPanel : EmergencyStop()	
+ControlPanel -> Gate : EmergencyStop()
+Gate -> Valve : EmergencyStop()
+Valve -> Gate
+Gate -> Motor : Stop()
+Motor -> Gate
+Gate -> TrafficLight : Red()
+Gate -> WaterLevelSensor : Measure()
+Gate -> ControlPanel
+ControlPanel -> Operator : EmergencyLightOn()
+
+@enduml
+@startuml Sequence_Raise
+title Sequence Diagram Raise Water Level
+
+Actor Operator
+Entity ControlPanel
+Entity GateHigh
+Entity GateLow
+Entity ValveLow
+Entity ValveMiddle
+Entity ValveHigh
+Entity WaterLevelSensor
+Entity MotorLowGate
+Entity MotorHighGate
+Entity TrafficLight
+
+
+Operator -> ControlPanel : RaiseWaterLevel()
+ControlPanel -> GateLow : Close()
+GateLow -> MotorLowGate : Close()
+MotorLowGate -> GateLow
+GateLow -> ControlPanel
+ControlPanel -> GateHigh : Open()
+GateHigh -> ValveLow : Open()
+ValveLow -> GateLow
+
+loop WaterLevel isn't reached
+    GateHigh -> WaterLevelSensor : Measure()
+    WaterLevelSensor -> GateHigh : Result
+else WaterLevel == Above_Middle_Valve
+    GateHigh -> ValveMiddle : Open()
+    ValveMiddle -> GateLow
+else WaterLevel == Above_High_Valve
+    GateHigh -> ValveHigh : Open()
+    ValveHigh -> GateLow
+else WaterLevel == High
+    GateHigh -> ValveHigh : Close()
+    ValveHigh -> GateHigh
+    GateHigh -> ValveMiddle : Close()
+    ValveMiddle -> GateHigh
+    GateHigh -> ValveLow : Close()
+    ValveLow -> GateHigh
+
+end
+
+GateHigh -> MotorHighGate : Open()
+MotorHighGate -> GateHigh
+
+GateHigh -> ControlPanel
+ControlPanel -> Operator 
+@enduml
+
+@startuml Sequence_Lower
+title Sequence Diagram Lower Water Level
+
+Actor Operator
+Entity ControlPanel
+Entity GateHigh
+Entity GateLow
+Entity ValveLow
+Entity WaterLevelSensor
+Entity MotorLowGate
+Entity MotorHighGate
+Entity TrafficLight
+
+
+Operator->ControlPanel:LowerWaterLevel()
+ControlPanel->GateHigh:Close()
+GateHigh->MotorHighGate:Close()
+MotorHighGate->GateHigh
+
+GateHigh -> ControlPanel
+ControlPanel -> GateLow : Open()
+GateLow -> ValveLow : Open()
+
+loop WaterLevel isn't reached
+    GateLow -> WaterLevelSensor : Measure()
+    WaterLevelSensor -> GateLow : Result
+end
+
+GateLow -> ValveLow : Close()
+ValveLow -> GateLow
+GateLow -> MotorLowGate : Open()
+MotorLowGate -> GateLow
+
+
+GateLow -> ControlPanel
+ControlPanel -> Operator
 
 @enduml

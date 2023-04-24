@@ -1,0 +1,76 @@
+@startuml BreadBake
+Title BreadBake State Diagram
+
+[*] -> Standby
+
+state ProgramSelection
+    ProgramSelection : Entry: SetMenuNumber(int programID)
+    ProgramSelection : SetTime(int hour, int min)
+
+Standby -> ProgramSelection : [Event_MenuButton]
+ProgramSelection -> Standby : [Event_MenuButton]
+ProgramSelection -> ProgramSelection : [Event_TimeButton]
+
+Standby ---> Processing : [Event_StartButton]
+
+state Processing {
+    Processing: Do: SetTime(int hour, int min)
+    state Baking
+        Baking: Entry: StartBake(Minutes)
+    state Resting
+        Resting: Entry: StartRest(Minutes)
+    state Rising
+        Rising: Entry: StartRise(Minutes)
+    state Done
+        Done: Entry: Wait(5 Minutes)
+
+    state Kneading {
+    Kneading: Entry : 
+    Kneading: YeastTray.Drop(time)
+    Kneading: ExtraTray.Drop(time)
+
+    state MotorLeft
+        MotorLeft: Entry: TurnLeft()
+        MotorLeft: Exit: Stop()
+    state MotorRight
+        MotorRight: Entry: TurnRight()
+        MotorRight: Exit: Stop()
+
+    [*] --> MotorLeft
+
+    MotorLeft -Left-> MotorRight : [TimeElapsed == 1 Minute]
+    MotorRight -Right-> MotorLeft : [Time Elapsed == 1 Minute]
+    MotorLeft --Down-> [*] : [Cycles == NumberOfCycles]
+    }
+
+    state Cancel {
+        Cancel: Exit: Oven.Cancel() \nYeastTray.Cancel() \nExtraTray.Cancel()
+    }
+    
+    [*] -down-> Resting
+    Resting --right-> Kneading : [TimerElapsed]
+    note top of Rising
+        No event needs to be specified
+        due to the exit state condition of the Kneading state
+    end note
+    Kneading -> Rising
+    Rising -> Baking : [oven.IsOn == False]
+    Baking -right-> Done : [oven.IsOn == False]
+    Done -> [*] : [TimerElapsed]
+
+    note top of Done
+        PlantUML has it's quirks.
+        It only renders the events with this note in place,
+        most likely due to size constraints.
+    end note
+
+    Resting -down-> Cancel : [Event_MenuButton]
+    Kneading -down-> Cancel : [Event_MenuButton]
+    Rising -down-> Cancel : [Event_MenuButton]
+    Baking -down-> Cancel : [Event_MenuButton]
+
+    Cancel->[*]
+}
+
+Processing --> Standby : [Event_OvenDone]
+@enduml

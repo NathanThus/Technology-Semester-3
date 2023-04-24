@@ -1,0 +1,277 @@
+@startuml Use Case
+title Use Case Diagram
+
+skinParam actorStyle awesome
+
+:User: --> (Call Elevator)
+:User: --> (Select Floor)
+:User: --> (Keep door open via blocking)
+
+@enduml
+
+@startuml Class Diagram
+Title Class Diagram
+
+class ElevatorManager
+{
+}
+
+class Elevator
+{
+    {method} + GetFloorNumber() : int
+    {method} + MoveToFloor(int floor)
+    {method} + Open()
+}
+
+class ElevatorShaft
+{
+    {method} + Raise()
+    {method} + Lower()
+}
+
+class FloorSelectionPanel
+{
+    {method} + SelectFloor(int floor)
+    {method} - RaiseFloorSelectionEvent()
+}
+
+class CallElevatorPanel
+{
+    {method} + CallElevator()
+    {method} - RaiseCallElevatorEvent()
+}
+
+class Door
+{
+    {method} + Open()
+    {method} + Close()
+}
+
+class Display
+{
+    {method} + UpdateFloor(int floor)
+    {method} + UpdateDirection(ElevatorDirection direction)
+    {method} + Refresh()
+}
+
+interface IDoorDisplay
+{
+    {method} + UpdateFloor(int floor)
+    {method} + UpdateDirection(ElevatorDirection direction)
+    {method} + Refresh()
+}
+
+class TensionManager
+{
+}
+
+interface ITensionSensor
+{
+    {method} + Reset()
+    {method} - RaiseTensionEvent()
+}
+
+interface IPressureSensor
+{
+    {method} - RaisePressureEvent()
+}
+
+interface IOpticalSensor
+{
+    {method} - RaiseOpticalEvent()
+}
+
+interface IButton
+{
+    {method} - RaiseButtonEvent()
+}
+
+class Button
+{
+}
+
+interface IClamp
+{
+    {Method} + Close()
+    {Method} + Open()
+}
+
+class Floor
+{
+    {field} - int FloorNumber
+    {method} + Floor(int floorNumber)
+    {method} + GetFloorNumber() : int
+}
+
+interface ISpeaker
+{
+    {Method} + PlaySound()
+}
+
+enum ElevatorDirection
+{
+    UP
+    DOWN
+    IDLE
+}
+
+class Timer
+{
+    {field} - int Time;
+    {method} + Timer(int time)
+    {method} + Start()
+    {method} + hasElapsed()
+}
+
+ElevatorManager "1" o-- "*" ElevatorShaft
+ElevatorManager "1" o-- "*" Floor
+
+ElevatorShaft "1" --* "1" Elevator
+ElevatorShaft "1" o-- "1" TensionManager
+
+Floor "1" o-- "*" CallElevatorPanel
+Floor "1" o-- "1" IDoorDisplay
+
+note top of CallElevatorPanel
+    The reason for multiplicity is
+    that depending on the clients wishes,
+    multiple panels may be installed.
+end note
+
+Elevator "1" o-- "1" IDoorDisplay
+Elevator "1" o--  "1" ISpeaker
+Speaker .up.|> ISpeaker
+Elevator o----- FloorSelectionPanel
+
+FloorSelectionPanel o- IButton
+CallElevatorPanel o-- IButton
+
+IDoorDisplay <|.. Display
+IDoorDisplay <|.. Door
+
+Door "1" o-- "1" IPressureSensor
+Door "1" o-- "1" IOpticalSensor
+Door "1" o-right- "1" Timer
+
+OpticalSensor .|> IOpticalSensor
+PressureSensor ..|> IPressureSensor
+Button .up.|> IButton
+TensionManager "1" o-- "*" IClamp
+
+note top of IClamp
+    The reason for multiplicity is
+    that depending on the clients wishes,
+    multiple clamps may be installed.
+end note
+
+TensionManager "1" o-- "1" ITensionSensor
+TensionSensor .up.|> ITensionSensor
+Clamp .up.|> IClamp
+
+@enduml
+
+@startuml Sequence_Emergency
+title Sequence Diagram - Emergency
+
+
+entity TensionManager
+entity Clamp
+
+loop
+TensionManager -> TensionManager : CheckTension()
+end
+TensionManager -> Clamp : Close()
+
+alt Tension Reset
+TensionManager -> Clamp : Open()
+end
+
+@enduml
+
+@startuml Sequence_RequestElevator
+title Sequence Diagram - Request Elevator
+
+Actor User
+entity Button
+entity ElevatorManager
+entity Elevator
+entity Display
+entity Door
+User->Button : Press
+Button -> ElevatorManager : RaiseEvent()
+ElevatorManager -> Elevator : MoveToFloor(int floor)
+alt Elevator is moving
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+else
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+Elevator -> Door : Open()
+Door -> Elevator
+end
+
+Elevator ->Door : Close()
+Door -> Elevator
+
+@enduml
+
+@startuml Sequence_SelectFloor
+title Sequence Diagram - Select Floor
+
+Actor User
+Entity Button
+Entity FloorSelectionPanel
+Entity Elevator
+Entity Display
+entity Door
+
+User -> Button : Press
+Button -> FloorSelectionPanel : RaiseButtonEvent()
+FloorSelectionPanel -> Elevator : SelectFloor()
+Elevator -> Elevator : MoveToFloor()
+
+loop Elevator is moving
+Elevator -> Display : UpdateFloor()
+Display -> Elevator
+Elevator -> Display : UpdateDirection()
+Display -> Elevator
+end
+
+Elevator -> Door : Open()
+Door -> Elevator
+Elevator -> Door : Close()
+Door -> Elevator
+Elevator -> User
+@enduml
+
+@startuml Sequence_KeepDoorOpen
+title Sequence Diagram - Keep Door Open
+actor User
+entity Door
+entity OpticalSensor
+entity PressureSensor
+
+note left of User
+    This is akin to sticking
+    your foot in the door.
+end note
+loop PressureSensor is triggered
+User -> PressureSensor : Block
+PressureSensor -> Door : RaisePressureSensorEvent()
+Door -> Door : Open()
+else OpticalSensor is triggered
+User -> OpticalSensor : Block
+OpticalSensor -> Door : RaiseOpticalSensorEvent()
+Door -> Door: Open()
+else No Blocking is Detected
+Door -> Door : Close()
+end
+
+Door -> User
+
+
+@enduml
