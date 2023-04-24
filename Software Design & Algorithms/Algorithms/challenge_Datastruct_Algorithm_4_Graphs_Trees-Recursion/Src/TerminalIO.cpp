@@ -58,7 +58,7 @@ int TerminalIO::GetNumberOfConnections(FILE* stream)
     return numberOfConnections;
 }
 
-void TerminalIO::PrintResult(int *result, int numberOfTestCases)
+void TerminalIO::PrintResult(FILE* stream, int *result, int numberOfTestCases)
 {
     if (result == nullptr)
     {
@@ -67,6 +67,6 @@ void TerminalIO::PrintResult(int *result, int numberOfTestCases)
 
     for (size_t i = 0; i < numberOfTestCases; i++)
     {
-        printf("%d\n", result[i]);
+        fprintf(stream,"%d\n", result[i]);
     }
 }
