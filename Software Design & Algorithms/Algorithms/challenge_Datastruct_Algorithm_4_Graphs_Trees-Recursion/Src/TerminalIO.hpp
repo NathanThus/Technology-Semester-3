@@ -23,7 +23,7 @@ public:
     /// @param stream The file stream to read from
     /// @return Returns the number of connections
     int GetNumberOfConnections(FILE* stream);
-    
+
     /// @brief Prints the result to the file stream
     /// @param stream The file stream to write to
     /// @param result The result (array of integers)

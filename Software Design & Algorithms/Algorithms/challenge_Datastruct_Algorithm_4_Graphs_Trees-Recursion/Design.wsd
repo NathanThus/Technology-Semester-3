@@ -18,6 +18,23 @@ class main
 
 }
 
-main ->TerminalIO
+Class NetworkAlgorithm
+{
+    
+}
 
+class Node
+{
+    {field} - int id
+    {field} - int Connections[]
+
+    {method} + Node(int id)
+    {method} + Node(int id, int* connections)
+    {method} + int GetId()
+    {method} + int* GetConnections()
+}
+
+main -> TerminalIO
+main -> NetworkAlgorithm
+NetworkAlgorithm -> Node
 @enduml

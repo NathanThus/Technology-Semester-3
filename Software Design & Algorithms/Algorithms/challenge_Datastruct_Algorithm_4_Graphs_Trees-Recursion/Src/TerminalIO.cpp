@@ -58,6 +58,21 @@ int TerminalIO::GetNumberOfConnections(FILE* stream)
     return numberOfConnections;
 }
 
+int GetTreeStructure(FILE* stream, int* source, int* destination)
+{
+    if(stream == nullptr)
+    {
+        return -1;
+    }
+
+    fscanf(stream, "%d %d", &source, &destination);
+
+    // Perform some checks here, need to verify exactly what is meant in the PDF.
+    // For now, just return the values.
+
+    return -1;
+}
+
 void TerminalIO::PrintResult(FILE* stream, int *result, int numberOfTestCases)
 {
     if (result == nullptr)
