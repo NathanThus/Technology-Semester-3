@@ -63,7 +63,6 @@ const osThreadAttr_t defaultTask_attributes = {
     .tz_module = 0,
     .reserved = 0};
 
-//TODO: Turn this into something I can manually generate.
 osThreadId_t LedTaskHandle;
 const osThreadAttr_t LedTaskHandle_attributes =
     {
