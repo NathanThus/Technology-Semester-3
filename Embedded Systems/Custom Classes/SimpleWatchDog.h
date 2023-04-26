@@ -8,7 +8,6 @@
 /// @brief RLR value for 1 second. Only works with PSC_SECOND
 #define RLR_SECOND 2500
 
-// TODO: Check if these values are correct.
 /// @brief The prescaler values for the watchdog timer
 enum WatchDogPrescaler
 {
