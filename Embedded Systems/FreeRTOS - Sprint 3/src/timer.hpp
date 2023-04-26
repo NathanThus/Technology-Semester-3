@@ -84,6 +84,23 @@ struct PWMOutputPackage : public BasicTimerPackage
     }
 };
 
+struct PWMInputPackage : public BasicTimerPackage
+{
+    uint16_t channel;
+    CC_ChannelType type;
+
+    PWMInputPackage(uint16_t prescaler, uint16_t limit, TimerBit bit, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(prescaler, limit, bit)
+    {
+        this->channel = channel;
+        this->type = type;
+    }
+
+    PWMInputPackage(BasicTimerPackage package, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(package.prescaler, package.limit, package.bit)
+    {
+        this->channel = channel;
+        this->type = type;
+    }
+};
 
 class Timer
 {
@@ -98,7 +115,13 @@ class Timer
     /// @param package The package containing the count pulse settings.
     void EnableAsCountPulse(BasicTimerPackage package);
 
+    /// @brief Enables the timer as a PWM output.
+    /// @param package The package containing the PWM output settings.
     void EnableAsPWMOutput(PWMOutputPackage package);
+
+    /// @brief Enables the timer as a PWM input.
+    /// @param package The package containing the PWM input settings.
+    void EnableAsPWMInput(PWMInputPackage package);
 
     /// @brief Gets the counter value of the timer.
     /// @return The counter value.
@@ -129,9 +152,27 @@ class Timer
     /// @brief Sets the timer to external clock mode.
     void SetExternalClockMode();
 
-    void SetCaptureChannel(uint16_t channel, CC_ChannelType type);
+    /// @brief Sets the timer to internal clock mode.
+    /// @param channel The channel to set.
+    /// @param type The type of the channel.
+    void SetOutputCaptureChannel(uint16_t channel, CC_ChannelType type);
+
+    /// @brief Sets the timer to internal clock mode.
+    /// @param channel The channel to set.
+    /// @param type The type of the channel.
+    void SetInputCaptureChannel(uint16_t channel, CC_ChannelType type);
+
+    /// @brief Sets the output compare mode for the timer.
+    /// @param type The type of the output compare mode.
     void SetOutputCompareMode(OCM_Type type);
+
+    /// @brief Sets the capture compare value for the timer.
+    /// @param value The value to set.
     void SetCaptureCompareValue(uint16_t value);
+
+    /// @brief Sets the capture compare output for the timer.
+    /// @param channel The channel to set.
+    /// @param value The value to set.
     void SetCaptureCompareOutput(uint16_t channel, uint16_t value);
 
     /// @brief Enables the interrupt for the timer.
