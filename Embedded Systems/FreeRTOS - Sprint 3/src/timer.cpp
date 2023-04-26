@@ -18,7 +18,6 @@ void Timer::EnableAsCountPulse(BasicTimerPackage package)
 {
     ToggleClock(package.bit);
     SetPrescaler(package.prescaler);
-    SetLimit(package.limit);
     SetExternalClockMode();
     Enable();
 }
@@ -29,10 +28,44 @@ void Timer::EnableAsPWMOutput(PWMOutputPackage package)
     SetPrescaler(package.prescaler);
     SetLimit(package.limit);
 
-    SetCaptureChannel(package.channel, package.type);
+    SetOutputCaptureChannel(package.channel, package.type);
     SetOutputCompareMode(package.ocm);
     SetCaptureCompareValue(package.dutyCycle);
     SetCaptureCompareOutput(package.channel, 0x1);
+
+    Enable();
+}
+
+void Timer::EnableAsPWMInput(PWMInputPackage package)
+{
+    ToggleClock(package.bit);
+    SetPrescaler(package.prescaler);
+
+    // Configure CC1
+    timer->CCMR1 |= 0x1 << TIM_CCMR1_CC1S_Pos;
+
+    // Set Capture Polarity, Rising Edge
+    timer->CCER |= 0 << TIM_CCER_CC1P_Pos; 
+    timer->CCER |= 0 << TIM_CCER_CC1NP_Pos;
+
+    // Enable Capture
+    timer->CCER |= 0x1 << TIM_CCER_CC1E_Pos;
+
+    // Configure CC2
+    timer->CCMR1 |= 0x2 << TIM_CCMR1_CC2S_Pos;
+
+    // Set Capture Polarity, Falling Edge
+    timer->CCER |= 0x1 << TIM_CCER_CC2P_Pos;
+    timer->CCER |= 0x0 << TIM_CCER_CC2NP_Pos;
+
+    // Enable Capture
+    timer->CCER |= 0x1 << TIM_CCER_CC2E_Pos;
+
+    // Set Trigger Selection to Filtered Timer Input 1
+    timer->SMCR |= 0x5 << TIM_SMCR_TS_Pos;
+
+    // Set Slave Mode to Reset
+    timer->SMCR |= 0x4 << TIM_SMCR_SMS_Pos;
 
     Enable();
 }
@@ -71,9 +104,14 @@ void Timer::SetExternalClockMode()
     timer->SMCR |= TIM_SMCR_ECE;
 }
 
-void Timer::SetCaptureChannel(uint16_t channel, CC_ChannelType type)
+void Timer::SetOutputCaptureChannel(uint16_t channel, CC_ChannelType type)
 {
     timer->CCMR1 = (timer->CCMR1 & ~TIM_CCMR1_OC1M_Msk) | (type << channel * 4);
+}
+
+void Timer::SetInputCaptureChannel(uint16_t channel, CC_ChannelType type)
+{
+    timer->CCMR1 = (timer->CCMR1 & ~TIM_CCMR1_CC1S_Msk) | (type << channel * 4);
 }
 
 void Timer::SetOutputCompareMode(OCM_Type type)
