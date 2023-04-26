@@ -45,8 +45,8 @@ void Timer::EnableAsPWMInput(PWMInputPackage package)
     timer->CCMR1 |= 0x1 << TIM_CCMR1_CC1S_Pos;
 
     // Set Capture Polarity, Rising Edge
-    timer->CCER |= 0 << TIM_CCER_CC1P_Pos; 
     timer->CCER |= 0 << TIM_CCER_CC1NP_Pos;
+    timer->CCER |= 0 << TIM_CCER_CC1P_Pos; 
 
     // Enable Capture
     timer->CCER |= 0x1 << TIM_CCER_CC1E_Pos;
@@ -55,8 +55,8 @@ void Timer::EnableAsPWMInput(PWMInputPackage package)
     timer->CCMR1 |= 0x2 << TIM_CCMR1_CC2S_Pos;
 
     // Set Capture Polarity, Falling Edge
-    timer->CCER |= 0x1 << TIM_CCER_CC2P_Pos;
     timer->CCER |= 0x0 << TIM_CCER_CC2NP_Pos;
+    timer->CCER |= 0x1 << TIM_CCER_CC2P_Pos;
 
     // Enable Capture
     timer->CCER |= 0x1 << TIM_CCER_CC2E_Pos;
