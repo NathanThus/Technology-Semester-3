@@ -114,38 +114,22 @@ int main(void)
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
   BasicTimerPackage timerPackage = {PSC_SECOND, 200, TIMER2};
-  PWMOutputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMOutput,OCM_TYPE_PWM1, 1280};
-  timer.EnableAsPWMOutput(PWMPackage);
+  PWMInputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMInput};
+  timer.EnableAsPWMInput(PWMPackage);
 
-  /// TIMER
-
-  /// OUTPUT
-
-  // //Pa0
-  GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER0) | (0b10 << GPIO_MODER_MODER0_Pos);
+  GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER0) | (0x0 << GPIO_MODER_MODER0_Pos);
   GPIOA->AFR[0] = (GPIOA->AFR[0] & ~GPIO_AFRL_AFRL0) | (0B0001 << GPIO_AFRL_AFRL0_Pos);
 
 
   while (1)
   {
     /* USER CODE END WHILE */
-    // snprintf(msgBuf, MSGBUFSIZE, "%d\n", timer.GetCounter());
-    // HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-    // HAL_Delay(20);
+    snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM2->CCR2);
+    HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+    HAL_Delay(20);
     /* USER CODE BEGIN 3 */
-
-    for (int i = 0; i < 200; i++)
-    {
-      TIM2->CCR1 = i;
-      HAL_Delay(20);
-    }
-    for (int i = 200; i > 0; i--)
-    {
-      TIM2->CCR1 = i;
-      HAL_Delay(20);
-    }
   }
-  /* USER CODE END 3 */
+  /* USER COD END 3 */
 }
 
 /**
