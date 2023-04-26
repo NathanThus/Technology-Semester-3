@@ -46,7 +46,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-Timer timer = Timer(TIM2);
+Timer timer = Timer(TIM3);
 
 /* USER CODE BEGIN PV */
 /* USER CODE END PV */
@@ -60,12 +60,12 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN 0 */
 /* USER CODE END 0 */
 
-extern "C" int TIM2_IRQHandler(void)
-{
-  timer.ResetInterrupt();
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-  return 0;
-}
+// extern "C" int TIM2_IRQHandler(void)
+// {
+//   timer.ResetInterrupt();
+//   HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//   return 0;
+// }
 
 /**
   * @brief  The application entry point.
@@ -113,18 +113,17 @@ int main(void)
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
-  BasicTimerPackage timerPackage = {PSC_SECOND, 200, TIMER2};
+  BasicTimerPackage timerPackage = {72, 200, TIMER3};
   PWMInputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMInput};
   timer.EnableAsPWMInput(PWMPackage);
 
-  GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER0) | (0x0 << GPIO_MODER_MODER0_Pos);
-  GPIOA->AFR[0] = (GPIOA->AFR[0] & ~GPIO_AFRL_AFRL0) | (0B0001 << GPIO_AFRL_AFRL0_Pos);
-
+  GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+  GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
 
   while (1)
   {
     /* USER CODE END WHILE */
-    snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM2->CCR2);
+    snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR2);
     HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
     HAL_Delay(20);
     /* USER CODE BEGIN 3 */
