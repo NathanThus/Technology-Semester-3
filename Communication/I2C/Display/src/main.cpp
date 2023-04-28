@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SFE_MicroOLED.h>
+#include <Wire.h>
 
 #define I2C_ADDRESS 0x69
 #define OLED_RESET 9
@@ -8,6 +9,41 @@
 #define FONT_SIZE 0
 
 MicroOLED oled(OLED_RESET, DC_JUMPER);
+
+enum I2CData
+{
+  None = -1,
+  Temperature = 0,
+  Humidity = 1
+};
+
+// Registers
+
+I2CData incomingData = None;
+int Temperature;
+int Humidity;
+
+void onRecieve(int bytes)
+{
+  int inbound = Wire.read();
+  if(incomingData == I2CData::None)
+  {
+    incomingData = (I2CData)inbound;
+  }
+  else
+  {
+    switch(incomingData)
+    {
+      case I2CData::Temperature:
+        Temperature = inbound;
+        break;
+      case I2CData::Humidity:
+        Humidity = inbound;
+        break;
+    }
+    incomingData = I2CData::None;
+  }
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -53,3 +89,4 @@ void loop()
   oled.clear(PAGE);
   delay(1000);
 }
+
