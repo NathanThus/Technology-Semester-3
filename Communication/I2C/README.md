@@ -14,7 +14,7 @@ While this does not adhere to the I2C specification, it is a simple solution to 
 
 An access token is passed in a regular pattern between devices. This token is used to determine which device has control of the bus. The token is passed from device to device, until it reaches the device that wants to take control of the bus. The device that wants control of the bus waits for availability of the token, and then takes control of the bus. The device then performs the required actions, and passes the token to the next device. This goes on until the system shuts down. In pseudocode, this would look like the following:
 
-``` cpp
+``` md
 Loop forever
 {
     Wait for token
@@ -41,11 +41,73 @@ With this concept, the goal of either master is to take control of the bus by wr
 
 The control register is read by all masters. If a master wants to take control of the bus, it writes to the control register. If the bus is free, the master takes control of the bus. If the bus is taken by another master, the master waits until the bus is free. If the bus is taken by itself, the master does nothing.
 
+``` md
+Loop Forever
+{
+  Check Internal Register
+  if BusTaken
+}
+```
+
 ### Feedback
 
 After speaking to Felix, a few things were clarified. While I was initially under the impression that I needed to implement my own low level arbitration, this is not the case, as the Wire Library for Arduino already has an implementation for this. The purpose was to implement a system for dictating masters on the I2C bus.
 
 After a brief discussion of options, we decided that the best option would be to use a register based system. This would allow for the system to be easily expanded, and would allow for the system to be easily debugged.
+
+## Detecting Bus Arbitration
+
+<!-- TODO: Explain the interrupt shenanigans I found  -->
+
+<!-- Timeout go brrr -->
+
+```cpp
+case TW_SR_ARB_LOST_SLA_ACK:   // lost arbitration, returned ack
+    case TW_SR_ARB_LOST_GCALL_ACK: // lost arbitration, returned ack
+      // enter slave receiver mode
+      twi_state = TWI_SRX;
+      // indicate that rx buffer can be overwritten and ack
+      twi_rxBufferIndex = 0;
+      twi_reply(1);
+      break;
+```
+
+```cpp
+   case TW_MT_ARB_LOST: // lost bus arbitration
+      twi_error = TW_MT_ARB_LOST;
+      twi_releaseBus();
+      break;
+```
+
+```cpp
+ case TW_ST_ARB_LOST_SLA_ACK: // arbitration lost, returned ack
+      // enter slave transmitter mode
+      twi_state = TWI_STX;
+      // ready the tx buffer index for iteration
+      twi_txBufferIndex = 0;
+      // set tx buffer length to be zero, to verify if user changes it
+      twi_txBufferLength = 0;
+      // request for txBuffer to be filled and length to be set
+      // note: user must call twi_transmit(bytes, length) to do this
+      twi_onSlaveTransmit();
+      // if they didn't change buffer & length, initialize it
+      if(0 == twi_txBufferLength){
+        twi_txBufferLength = 1;
+        twi_txBuffer[0] = 0x00;
+      }
+      __attribute__ ((fallthrough));		  
+      // transmit first byte from buffer, fall
+    case TW_ST_DATA_ACK: // byte sent, ack returned
+      // copy data to output register
+      TWDR = twi_txBuffer[twi_txBufferIndex++];
+      // if there is more to send, ack, otherwise nack
+      if(twi_txBufferIndex < twi_txBufferLength){
+        twi_reply(1);
+      }else{
+        twi_reply(0);
+      }
+      break;
+```
 
 ## Implementation
 
@@ -55,11 +117,11 @@ After a brief discussion of options, we decided that the best option would be to
 |--------|---------|
 | Temperature | 0x01 |
 | Humidity | 0x02 |
-| Display | 0x03 |
+| Display-Arduino | 0x03 |
+| OLED Display | 0x060 |
+_The OLED display has it's own built in address_
 
 #### Hardware
-
-The hardware for this project is as follows:
 
 | Quantity | Device | Description |
 |-------------|--------|-------------|
@@ -67,13 +129,9 @@ The hardware for this project is as follows:
 | 2 | DHT11 | Used for temperature and humidity sensing |
 | 1 | OLED Display | Used for displaying the data |
 
-<!-- The DHT11 Sensors are connected to the Master Arduino's as follows: -->
-
-<!-- The OLED Display is connected to the Slave Arduino via I2C, with the SparkFun QWIIC connector. -->
-
-<!-- The Master Arduino's are connected to the Slave Arduino via regular I2C. -->
-
 ![Circuit Diagram](./Schematic.png)
+
+Not featured is the display, although this is connected to the slave arduino via the proprietary QWIIC connector, used by Sparkfun.
 
 ## Display
 
@@ -175,10 +233,38 @@ To use this, I'll call the function twice. While I could have used two writes in
 
 During the Proftaak, I found myself struggling with the ESP32. As it turns out, the Wire library for the ESP32 is not the same as the Wire library for the arduino. The ESP32 Library does not implement the ability to log onto the bus as a master with an address. This causes the wierd situation of being forced to log off, log on without an address, write the data and then finally logging back on as a slave.
 
-## Showcase
+## Sensor Devices
+
+### Register
+
+Due to the lack of data that needs to be sent from one master to another, the register is very simple.
+
+| Register | Description |
+|----------|-------------|
+| 0x01 | Control Register |
+
+While I could simply enact that any data sent to the device is an indication that the other wants control of the bus, I will be using a register based system.
+
+### Checking for Control
+
+The act of checking for control is fairly simple. If the internal register is set, the other device has control of the bus. Else, the device has control of the bus.
+
+### Taking Control
+
+The act of taking control of the bus is slightly more complex however. The device must first check if the bus is free. If it is, the device will then send two bytes of data to the other master. The first being the register it intends to write to, the second being the data. After doing this, the device will then wait for the other master to relinquish control of the bus.
+
+<!-- TODO: Both masters attempt to write -->
+
+### Relinquishing Control
+
+The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus.
+
+### Testing
+
+I intend to stress test the system by having it run overnight, and then checking the data in the morning. If the data still updates frequently, I will consider this a success.
 
 ## Conclusion
 
 ## References
-
+ 
 <!-- Stuff goes here  -->
