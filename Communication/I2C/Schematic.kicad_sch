@@ -2,7 +2,7 @@
 
   (uuid 134443ff-8767-4ba0-8696-6b91b9aab18e)
 
-  (paper "User" 250.012 99.9998)
+  (paper "User" 200 150.012)
 
   (lib_symbols
     (symbol "MCU_Module:Arduino_UNO_R3" (in_bom yes) (on_board yes)

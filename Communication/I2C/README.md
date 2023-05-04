@@ -55,7 +55,7 @@ After speaking to Felix, a few things were clarified. While I was initially unde
 
 After a brief discussion of options, we decided that the best option would be to use a register based system. This would allow for the system to be easily expanded, and would allow for the system to be easily debugged.
 
-## Detecting Bus Arbitration
+## Bus Arbitration
 
 <!-- TODO: Explain the interrupt shenanigans I found  -->
 
@@ -95,7 +95,7 @@ case TW_SR_ARB_LOST_SLA_ACK:   // lost arbitration, returned ack
         twi_txBufferLength = 1;
         twi_txBuffer[0] = 0x00;
       }
-      __attribute__ ((fallthrough));		  
+      __attribute__ ((fallthrough));
       // transmit first byte from buffer, fall
     case TW_ST_DATA_ACK: // byte sent, ack returned
       // copy data to output register
@@ -135,7 +135,7 @@ Not featured is the display, although this is connected to the slave arduino via
 
 ## Display
 
-To make my life easier, I have made a function for printing lines to the display. This function will automatically increment the cursor, so that the next line will be printed below the previous line. This function also automatically displays the data, so that the user does not have to call the display function. The function is as follows:
+I have made a function for printing lines to the display. This function will automatically increment the cursor, so that the next line will be printed below the previous line. This function also automatically displays the data, so that the user does not have to call the display function. The function is as follows:
 
 ```cpp
 
@@ -181,9 +181,9 @@ To recieve data from the I2C bus, I have created a function that is called when 
 void onRecieve(int bytes)
 {
   int inbound = Wire.read();
-  if(incomingData == I2CData::None) // Recieve Register
+  if(incomingData == I2CData::None)
   {
-    incomingData = (I2CData)inbound;
+    incomingData = (I2CData)inbound; // Set the register the data is aimed at.
   }
   else // Recieve Data
   {
@@ -257,14 +257,22 @@ The act of taking control of the bus is slightly more complex however. The devic
 
 ### Relinquishing Control
 
-The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus.
+The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus. After doing this, a small delay is added to prevent the device from immediately taking control of the bus again. If I wanted to, I could randomise this delay, but for the purposes of easy prototyping, I will not.
 
 ### Testing
 
 I intend to stress test the system by having it run overnight, and then checking the data in the morning. If the data still updates frequently, I will consider this a success.
 
+### Observations
+
+Due to the optimisations of the C++ compiler, the code has an interesting quirk. The registers, which are vital for the functioning of the system, were getting cleaned up. This was due to the fact that the registers were not being viewed as used, and thus the compiler decided to clean them up. This was fixed by adding the volatile keyword to the registers.
+
 ## Conclusion
 
+lorem ipsum
+
 ## References
- 
+
+lorem ipsum
+
 <!-- Stuff goes here  -->
