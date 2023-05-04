@@ -48,11 +48,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+int termninalInput = 0;
+
 extern UART_HandleTypeDef huart2;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
+osThreadId_t TerminalTaskHandle;
+const osThreadAttr_t TerminalTask_attributes = {
     .name = "defaultTask",
     .attr_bits = osThreadDetached,
     .cb_mem = NULL,
@@ -101,7 +103,7 @@ void MX_FREERTOS_Init(void)
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  TerminalTaskHandle = osThreadNew(startSerialTask, NULL, &TerminalTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -119,13 +121,13 @@ void MX_FREERTOS_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+void startSerialTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for (;;)
   {
-    osDelay(1);
+    scanf("%d", &termninalInput);
   }
   /* USER CODE END StartDefaultTask */
 }
