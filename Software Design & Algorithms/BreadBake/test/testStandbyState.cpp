@@ -78,34 +78,52 @@ TEST_F(StateTest, test_BrokenEmptyTest)
 
 TEST_F(StateTest, test_Program_PlainBread)
 {
-    baker->Pulse();
-    EXPECT_CALL(display, SetCurrentTask(_)).Times(1);
+    // Program: Plain Bread
+    const int numberOfMotorTurns = 20;
+
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(6);
     EXPECT_CALL(display, SetMenu(_)).Times(1);
     EXPECT_CALL(display, SetTime(_, _)).Times(1);
-    EXPECT_CALL(display, DisplayOff()).Times(1);
+    EXPECT_CALL(display, DisplayOff()).Times(0);
 
-    EXPECT_CALL(event, GetEvent()).Times(1);
     EXPECT_CALL(extras, Drop(_)).Times(0);
     EXPECT_CALL(extras, Cancel()).Times(0);
+    EXPECT_CALL(yeast, Drop(_)).Times(1);
+    EXPECT_CALL(yeast, Cancel()).Times(0);
 
-    EXPECT_CALL(motor, TurnLeft()).Times(30);
-    EXPECT_CALL(motor, TurnRight()).Times(30);
-    EXPECT_CALL(motor, Stop()).Times(60);
+    EXPECT_CALL(motor, TurnLeft()).Times(10);
+    EXPECT_CALL(motor, TurnRight()).Times(10);
+    EXPECT_CALL(motor, Stop()).Times(20);
 
     EXPECT_CALL(oven, StartRise(_)).Times(1);
     EXPECT_CALL(oven, StartBake(_)).Times(1);
-    EXPECT_CALL(oven, IsOn()).Times(2);
-    EXPECT_CALL(oven, GetTemperature()).Times(2);
+    EXPECT_CALL(oven, IsOn()).Times(0);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
     EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
 
     EXPECT_CALL(startButton, LedOn()).Times(1);
     EXPECT_CALL(startButton, LedOff()).Times(1);
 
-    EXPECT_CALL(timer, Set(_)).Times(5 + 60); 
+    EXPECT_CALL(timer, Set(_)).Times(2 + 20); 
     EXPECT_CALL(timer, Cancel()).Times(0);
 
-    EXPECT_CALL(yeast, Drop(_)).Times(0);
-    EXPECT_CALL(yeast, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Waiting Delay
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+
+    // Add 1 for the yeast drop
+    for (int i = 0; i < numberOfMotorTurns + 1; ++i) // Kneading Delay
+    {
+        baker->HandleEvent(Events::TIMER_TIMEOUT);
+    }
+
+    baker->HandleEvent(Events::OVEN_DONE); // Rising
+    baker->HandleEvent(Events::OVEN_DONE); // Baking
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done
+    
 
     EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
 }

@@ -65,7 +65,6 @@ void EventGenerator::StartPressed()
     PushEvent(Events::START_BUTTON_PRESSED);
 }
 
-
 void EventGenerator::HandlePollEvents()
 {
     if (oven.IsOn())
