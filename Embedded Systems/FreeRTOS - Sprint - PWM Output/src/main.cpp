@@ -113,19 +113,40 @@ int main(void)
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
 
-  BasicTimerPackage timerPackage = {72, 200, TIMER3};
-  PWMInputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMInput};
-  timer.EnableAsPWMInput(PWMPackage);
+
+
+  RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; //
+  TIM3->PSC = 7200; //72?
+  TIM3->EGR |= TIM_EGR_UG;
+  TIM3->SR = ~TIM_SR_UIF;
+  TIM3->ARR = 200;
+  TIM3->CCMR1 = (TIM3->CCMR1 & ~TIM_CCMR1_OC1M_Msk) | (0b0110 << TIM_CCMR1_OC1M_Pos);
+  TIM3->CCER = (TIM3->CCER & ~TIM_CCER_CC1E_Msk) | (0b1 << TIM_CCER_CC1E_Pos);
+  TIM3->CR1 = (TIM3->CR1 & ~TIM_CR1_CEN_Msk) | (0b1 << TIM_CR1_CEN_Pos);
 
   GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
   GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
 
   while (1)
   {
+    
     /* USER CODE END WHILE */
-    snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR2);
-    HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-    HAL_Delay(20);
+    for (size_t i = 0; i < 100; i++)
+    {
+      TIM3->CCR1 = i;
+      snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR1);
+      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+      HAL_Delay(20);
+    }
+
+    for (size_t i = 100; i > 0; i--)
+    {
+      TIM3->CCR1 = i;
+      snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR2);
+      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+      HAL_Delay(20);
+    }
+    
     /* USER CODE BEGIN 3 */
   }
   /* USER COD END 3 */
