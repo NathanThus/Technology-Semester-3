@@ -127,6 +127,10 @@ class Timer
     /// @return The counter value.
     int GetCounter();
 
+    /// @brief Gets the PWM input of the timer. 
+    /// @return The PWM input.
+    int GetPWMInput();
+
     /// @brief Resets the interrupt for the timer.
     void ResetInterrupt();
 

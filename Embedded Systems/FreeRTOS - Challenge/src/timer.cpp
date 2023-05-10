@@ -135,6 +135,11 @@ void Timer::EnableInterrupt(IRQn_Type irq)
     timer->DIER |= TIM_DIER_UIE;
 }
 
+int Timer::GetPWMInput()
+{
+    return timer->CCR2;
+}
+
 void Timer::ResetInterrupt()
 {
     timer->SR &= ~TIM_SR_UIF;
