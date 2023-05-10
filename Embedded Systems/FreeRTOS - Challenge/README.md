@@ -99,6 +99,10 @@ The main reason for not including serial output in the task as well, is due to t
 
 This however, should not impact the other parts of the system, as the serial input will not be responisble for calling the watchdog reset function.
 
+#### Side Note
+
+After some additional consideration, I decided to use the `HAL_UART_Recieve` function for the purposes of reading the serial input. This is a fair bit cleaner, as well as adding less bloat due to not including the large `stdio.h` library.
+
 ## Implementation
 
 ## Results
