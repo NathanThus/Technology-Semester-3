@@ -107,7 +107,6 @@ TEST_F(StateTest, test_Program_PlainBread)
     EXPECT_CALL(timer, Set(_)).Times(2 + 20); 
     EXPECT_CALL(timer, Cancel()).Times(0);
 
-
     baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
     baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
     baker->HandleEvent(Events::TIMER_TIMEOUT); // Waiting Delay
@@ -124,6 +123,5 @@ TEST_F(StateTest, test_Program_PlainBread)
     baker->HandleEvent(Events::TIMER_TIMEOUT); // Done
     baker->HandleEvent(Events::TIMER_TIMEOUT); // Done
     
-
     EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
 }
