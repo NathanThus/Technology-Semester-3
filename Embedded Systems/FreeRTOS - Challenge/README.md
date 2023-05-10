@@ -34,7 +34,36 @@ I have made a general purpose timer class, which includes all the types of timer
 - PWM Output
 - Counting Pulse
 
-This class targets 3 General Purpose timers, 2/3/4, as these are the only timers which have 4 channels, which is required for the PWM Input/Output.
+This class targets 3 General Purpose timers, 2/3/4, as these are the only timers which have 4 channels, which is required for the PWM Input/Output. For this challenge, I'll be using PWM Input and PWM Output.
+
+### Servo PWM
+
+The control signal requires a 5V PWM signal, Additionally, it expects the duty cycle to around 1280 microseconds, or 1.280ms. This means for the purposes of PWMOutput, we need to configure it as such:
+
+```cpp
+  const int PWM_PSC = 72;
+  const int PWM_ARR = 200;
+  BasicTimerPackage basicTimerPackageOutput = {PWM_PSC, PWM_ARR, TimerBit::TIMER2};
+  PWMOutputPackage pwmOutputPackage = {basicTimerPackageOutput, 1, CC_ChannelType::CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, 1280};
+```
+
+For the Feedback signal, a 3.3v signal at 910Hz is expected. in my experience during the Proof of Concept stage, I can use the same PSC and ARR.
+
+### Alternate Functions
+
+For the PWM input, I'll be using the Servo as an input device. I'll be taking the data from the servo, and relaying it to the user via UART.
+
+```cpp
+  // PIN B4 (D5) -> TIM3 INPUT
+  GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+  GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
+```
+
+This sets D5 (Which is a PWM pin), as an actual PWM input pin. We can then read the value via the `CCR2` register of the timer. I'll be doing the same for D6, which is also a PWM pin.
+
+### Measuring PWM Input & Output
+
+<!-- TODO: Add some oscilloscope pictures here. -->
 
 ### Differentiation
 
