@@ -97,24 +97,16 @@ int main(void)
 
   /* Init scheduler */
   // ES Course Comments: Uncomment the three lines below to enable FreeRTOS.
-  //osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
-  //MX_FREERTOS_Init();
-  //osKernelStart(); /* Start scheduler */
+  osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+  osKernelStart(); /* Start scheduler */
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  const int MSGBUFSIZE = 80;
-  char msgBuf[MSGBUFSIZE];
-  snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
-  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+
   while (1)
   {
-    /* USER CODE END WHILE */
-    snprintf(msgBuf, MSGBUFSIZE, "%s", "In loop!\r\n");
-    HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-    GPIOA->ODR ^= (1 << 5); // Toggle GPIO pin PA5 (onboard green LED).
-    HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
