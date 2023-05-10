@@ -63,7 +63,17 @@ This sets D5 (Which is a PWM pin), as an actual PWM input pin. We can then read 
 
 ### Measuring PWM Input & Output
 
-<!-- TODO: Add some oscilloscope pictures here. -->
+!["Digital Signal Middle"](./Assets/IMG20230510144127.jpg)
+
+!["Oscilloscope Signal Middle"](./Assets/IMG20230510144148.jpg)
+
+!["Digital Signal Low"](./Assets/IMG20230510144213.jpg)
+
+!["Oscilloscope Signal Low"](./Assets/IMG20230510144224.jpg)
+
+!["Digital Signal High"](./Assets/IMG20230510144242.jpg)
+
+!["Oscilloscope Signal High"](./Assets/IMG20230510144245.jpg)
 
 ### Differentiation
 
