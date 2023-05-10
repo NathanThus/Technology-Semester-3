@@ -84,23 +84,23 @@ struct PWMOutputPackage : public BasicTimerPackage
     }
 };
 
-struct PWMInputPackage : public BasicTimerPackage
-{
-    uint16_t channel;
-    CC_ChannelType type;
+// struct PWMInputPackage : public BasicTimerPackage
+// {
+//     uint16_t channel;
+//     CC_ChannelType type;
 
-    PWMInputPackage(uint16_t prescaler, uint16_t limit, TimerBit bit, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(prescaler, limit, bit)
-    {
-        this->channel = channel;
-        this->type = type;
-    }
+//     PWMInputPackage(uint16_t prescaler, uint16_t limit, TimerBit bit, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(prescaler, limit, bit)
+//     {
+//         this->channel = channel;
+//         this->type = type;
+//     }
 
-    PWMInputPackage(BasicTimerPackage package, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(package.prescaler, package.limit, package.bit)
-    {
-        this->channel = channel;
-        this->type = type;
-    }
-};
+//     PWMInputPackage(BasicTimerPackage package, uint16_t channel, CC_ChannelType type) : BasicTimerPackage(package.prescaler, package.limit, package.bit)
+//     {
+//         this->channel = channel;
+//         this->type = type;
+//     }
+// };
 
 class Timer
 {
@@ -121,7 +121,7 @@ class Timer
 
     /// @brief Enables the timer as a PWM input.
     /// @param package The package containing the PWM input settings.
-    void EnableAsPWMInput(PWMInputPackage package);
+    void EnableAsPWMInput(BasicTimerPackage package);
 
     /// @brief Gets the counter value of the timer.
     /// @return The counter value.

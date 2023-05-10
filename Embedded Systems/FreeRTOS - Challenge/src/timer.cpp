@@ -36,7 +36,7 @@ void Timer::EnableAsPWMOutput(PWMOutputPackage package)
     Enable();
 }
 
-void Timer::EnableAsPWMInput(PWMInputPackage package)
+void Timer::EnableAsPWMInput(BasicTimerPackage package)
 {
     ToggleClock(package.bit);
     SetPrescaler(package.prescaler);
