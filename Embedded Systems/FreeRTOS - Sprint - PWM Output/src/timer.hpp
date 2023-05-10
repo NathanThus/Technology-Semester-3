@@ -155,16 +155,16 @@ class Timer
     /// @brief Sets the timer to internal clock mode.
     /// @param channel The channel to set.
     /// @param type The type of the channel.
-    void SetOutputCaptureChannel(uint16_t channel, CC_ChannelType type);
+    void SetOutputCaptureChannel(uint16_t channel, OCM_Type type);
 
     /// @brief Sets the timer to internal clock mode.
     /// @param channel The channel to set.
     /// @param type The type of the channel.
     void SetInputCaptureChannel(uint16_t channel, CC_ChannelType type);
 
+
     /// @brief Sets the output compare mode for the timer.
-    /// @param type The type of the output compare mode.
-    void SetOutputCompareMode(OCM_Type type);
+    void SetOutputCompareMode();
 
     /// @brief Sets the capture compare value for the timer.
     /// @param value The value to set.
