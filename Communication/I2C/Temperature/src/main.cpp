@@ -56,8 +56,12 @@ void loop() {
     // Wire.beginTransmission(HUMIDITY_ADDRESS);
     // Wire.write(MARK_AS_SLAVE);
     // Wire.endTransmission();
+
     Wire.beginTransmission(DISPLAY_ADDRESS);
-    // Wire.write(TEMPERATURE_REGISTER);
+    Wire.write(TEMPERATURE_REGISTER);
+    Wire.endTransmission();
+    
+    Wire.beginTransmission(DISPLAY_ADDRESS);
     Wire.write(sensorData);
     Wire.endTransmission();
 

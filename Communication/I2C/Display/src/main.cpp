@@ -27,7 +27,23 @@ int lastBytes = 0;
 void recieveData(int bytes)
 {
   int data = Wire.read();
-  Register_Temperature = data;
+  if(incomingData == None)
+  {
+    incomingData = (I2CData)data;
+    lastBytes = bytes;
+  }
+  else
+  {
+    if(incomingData == Temperature)
+    {
+      Register_Temperature = data;
+    }
+    else if(incomingData == Humidity)
+    {
+      Register_Humidity = data;
+    }
+    incomingData = None;
+  }
 }
 
 void setup() {
