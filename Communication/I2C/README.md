@@ -57,26 +57,26 @@ After a brief discussion of options, we decided that the best option would be to
 
 ## Bus Arbitration
 
-<!-- TODO: Explain the interrupt shenanigans I found  -->
-
-<!-- Timeout go brrr -->
-
-```cpp
-case TW_SR_ARB_LOST_SLA_ACK:   // lost arbitration, returned ack
-    case TW_SR_ARB_LOST_GCALL_ACK: // lost arbitration, returned ack
-      // enter slave receiver mode
-      twi_state = TWI_SRX;
-      // indicate that rx buffer can be overwritten and ack
-      twi_rxBufferIndex = 0;
-      twi_reply(1);
-      break;
-```
+The Arduino Wire Library has it's own implementation of bus arbitration. This is implemented in the `twi.c` file. The following is a list of the states that the bus can be in:
 
 ```cpp
    case TW_MT_ARB_LOST: // lost bus arbitration
       twi_error = TW_MT_ARB_LOST;
       twi_releaseBus();
       break;
+```
+
+In the case that the Master Transmitter (Indicated my `_MT_`) loses the bus arbitration (Indicated by `_ARB_LOST_`), the bus is released. This is done by calling the `twi_releaseBus()` function. This releases the bus then sets itself to an idle state, as seen below.
+
+```cpp
+void twi_releaseBus(void)
+{
+  // release bus
+  TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT);
+
+  // update twi state
+  twi_state = TWI_READY;
+}
 ```
 
 ```cpp
@@ -108,6 +108,12 @@ case TW_SR_ARB_LOST_SLA_ACK:   // lost arbitration, returned ack
       }
       break;
 ```
+
+This section of code is responsible for when the Slave Transmitter (as indicated by `_ST_`) loses the arbitration, but does recieve an ACK. It then enters the Slave Transmitter mode, and sets the buffer index to 0. It then calls the `twi_onSlaveTransmit()` function, which is a callback function that is called when the slave is ready to transmit. This function is defined in the `Wire.h` file, and is used to set the buffer length and buffer. If the buffer length is 0, it sets the buffer length to 1, and sets the buffer to 0x00. It then falls through to the `TW_ST_DATA_ACK` case, which is responsible for sending the data. It copies the data to the output register, and then checks if there is more data to send. If there is more data to send, it sends an ACK, otherwise it sends a NACK.
+
+This allows the slave to attempt sending data to the master, once again.
+
+
 
 ## Implementation
 
@@ -168,7 +174,7 @@ void loop()
     PrintLine("Hum: ", hum);
 
     oled.clear(PAGE);
-    delay(DELAY); // Delay to prevent flooding the bus, 
+    delay(DELAY); // Delay to prevent flooding the bus
 }
 
 ```

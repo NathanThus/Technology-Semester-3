@@ -3,8 +3,8 @@
 #include <DHT.h>
 // I2C ADDRESSES
 
-#define MY_ADDRESS 0x01
-#define HUMIDITY_ADDRESS 0x02
+#define MY_ADDRESS 0x02
+#define TEMPERATURE_ADDRESS 0x01
 #define DISPLAY_ADDRESS 0x03
 
 // M2M COMMUNICATION
@@ -14,7 +14,7 @@
 
 // DISPLAY COMMUNICATION
 
-#define TEMPERATURE_REGISTER 0x0
+#define HUMIDITY_REGISTER 0x1
 
 // REGISTER
 
@@ -51,22 +51,22 @@ void setup() {
 void loop() {
   if(!isSlave)
   {
-    Wire.beginTransmission(HUMIDITY_ADDRESS);
+    Wire.beginTransmission(TEMPERATURE_ADDRESS);
     Wire.write(MARK_AS_SLAVE);
     Wire.endTransmission();
 
     Wire.beginTransmission(DISPLAY_ADDRESS);
-    Wire.write(TEMPERATURE_REGISTER);
+    Wire.write(HUMIDITY_REGISTER);
     Wire.write(sensorData);
     Wire.endTransmission();
 
-    Wire.beginTransmission(HUMIDITY_ADDRESS);
+    Wire.beginTransmission(TEMPERATURE_ADDRESS);
     Wire.write(MARK_AS_MASTER);
     Wire.endTransmission();
   }
   else
   {
-    sensorData = (int)dht11.readTemperature();
+    sensorData = (int)dht11.readHumidity();
   }
 
   delay(50);
