@@ -10,7 +10,7 @@ For the purposes of this project, I'll be implementing two DHT11 sensors, and an
 
 While this does not adhere to the I2C specification, it is a simple solution to the problem. The hardware based solution is based on using GPIO pins to force control of the bus, by directly controlling another master. Due to the requirements of the project, this solution is not applicable.
 
-### Token based solution (AKA Token Passing Media Access Control)
+### Token based solution 
 
 An access token is passed in a regular pattern between devices. This token is used to determine which device has control of the bus. The token is passed from device to device, until it reaches the device that wants to take control of the bus. The device that wants control of the bus waits for availability of the token, and then takes control of the bus. The device then performs the required actions, and passes the token to the next device. This goes on until the system shuts down. In pseudocode, this would look like the following:
 
@@ -19,7 +19,6 @@ Loop forever
 {
     Wait for token
     Take control of the bus
-    Verify I have control of the bus
     If I have control of the bus
     {
         Do something
@@ -39,13 +38,22 @@ With this concept, the goal of either master is to take control of the bus by wr
 | 0x01  | Master 1    |
 | 0x02  | Master 2    |
 
-The control register is read by all masters. If a master wants to take control of the bus, it writes to the control register. If the bus is free, the master takes control of the bus. If the bus is taken by another master, the master waits until the bus is free. If the bus is taken by itself, the master does nothing.
+The control register is read by all masters. If a master wants to take control of the bus, it writes to the control register. If the bus is free, the master takes control of the bus. If the bus is taken by another master, the master waits until the bus is free. If the bus is taken by itself, the master does nothing. A rough outline of this concept is as follows:
 
 ``` md
 Loop Forever
 {
   Check Internal Register
   if BusTaken
+  {
+    Wait for BusFree
+  }
+  else
+  {
+    Take control of bus
+    Do something
+    Relinquish control of bus
+  }
 }
 ```
 
@@ -113,8 +121,6 @@ This section of code is responsible for when the Slave Transmitter (as indicated
 
 This allows the slave to attempt sending data to the master, once again.
 
-
-
 ## Implementation
 
 ### Device Addresses
@@ -135,7 +141,7 @@ _The OLED display has it's own built in address_
 | 2 | DHT11 | Used for temperature and humidity sensing |
 | 1 | OLED Display | Used for displaying the data |
 
-![Circuit Diagram](./Schematic.png)
+![Circuit Diagram](./Schematic.png) _Circuit Diagram_
 
 Not featured is the display, although this is connected to the slave arduino via the proprietary QWIIC connector, used by Sparkfun.
 
@@ -259,8 +265,6 @@ The act of checking for control is fairly simple. If the internal register is se
 
 The act of taking control of the bus is slightly more complex however. The device must first check if the bus is free. If it is, the device will then send two bytes of data to the other master. The first being the register it intends to write to, the second being the data. After doing this, the device will then wait for the other master to relinquish control of the bus.
 
-<!-- TODO: Both masters attempt to write -->
-
 ### Relinquishing Control
 
 The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus. After doing this, a small delay is added to prevent the device from immediately taking control of the bus again. If I wanted to, I could randomise this delay, but for the purposes of easy prototyping, I will not.
@@ -273,12 +277,12 @@ I intend to stress test the system by having it run overnight, and then checking
 
 Due to the optimisations of the C++ compiler, the code has an interesting quirk. The registers, which are vital for the functioning of the system, were getting cleaned up. This was due to the fact that the registers were not being viewed as used, and thus the compiler decided to clean them up. This was fixed by adding the volatile keyword to the registers.
 
-## Conclusion
-
-lorem ipsum
-
 ## References
 
-lorem ipsum
 
-<!-- Stuff goes here  -->
+A Guide to Arduino & the I2C Protocol (Two Wire) | Arduino Documentation. (n.d.). from https://docs.arduino.cc/learn/communication/wire
+
+communication/Toolbox/Standard—NXP I2C bus protocol.pdf · master · Technology / t-sem3-db. (2020, August 25). GitLab. https://git.fhict.nl/technology/t-sem3-db/-/blob/master/communication/Toolbox/Standard%20-%20NXP%20I2C%20bus%20protocol.pdf
+
+Valdez, J., & Becker, J. (2015). Understanding the I2C Bus. https://www.ti.com/lit/ml/slva704/slva704.pdf?ts=1680186606920
+

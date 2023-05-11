@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <DHT.h>
+#include <string.h>
 // I2C ADDRESSES
 
 #define MY_ADDRESS 0x02
