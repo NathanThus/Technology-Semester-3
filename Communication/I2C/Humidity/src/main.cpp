@@ -1,74 +1,63 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <DHT.h>
-#include <string.h>
 // I2C ADDRESSES
 
-#define MY_ADDRESS 0x02
-#define TEMPERATURE_ADDRESS 0x01
-#define DISPLAY_ADDRESS 0x03
+#define MY_ADDRESS 60
+#define TEMPERATURE_ADDRESS 50
+#define DISPLAY_ADDRESS 3
 
 // M2M COMMUNICATION
 
-#define MARK_AS_SLAVE 0x0
-#define MARK_AS_MASTER 0x1
+#define MARK_AS_SLAVE 10
+#define MARK_AS_MASTER 10
 
 // DISPLAY COMMUNICATION
 
-#define HUMIDITY_REGISTER 0x1
+#define HUMIDITY_REGISTER 1
 
 // REGISTER
 
-volatile bool isSlave = 0;
-volatile int sensorData = 0; // Is only used for outbound communication
+int isSlave = MARK_AS_MASTER;
+int sensorData = 0; // Is only used for outbound communication
 
 // DHT11
-DHT dht11(A2, DHT11);
+DHT dht11(A0, DHT11);
 
-void onRecieve(int howMany)
+void onData(int howMany)
 {
-  int inbound = -1;
-  while(Wire.available())
+  int inbound = Wire.read();
+
+  if(inbound != -1)
   {
-    inbound = Wire.read();
+    isSlave = inbound;
   }
 
-  if(inbound == 0)
-  {
-    isSlave = false;
-  }
-  else if(inbound == 1)
-  {
-    isSlave = true;
-  }
+  Wire.flush();
 }
 
 void setup() {
   // put your setup code here, to run once:
+  dht11.begin();
+  Serial.begin(9600);
+  Wire.onReceive(onData);
   Wire.begin(MY_ADDRESS);
-  Wire.onReceive(onRecieve);
+
+  pinMode(8,OUTPUT);
 }
 
-void loop() {
-  if(!isSlave)
+void loop()
+{
+  if(isSlave == 10)
   {
-    Wire.beginTransmission(TEMPERATURE_ADDRESS);
-    Wire.write(MARK_AS_SLAVE);
-    Wire.endTransmission();
-
-    Wire.beginTransmission(DISPLAY_ADDRESS);
-    Wire.write(HUMIDITY_REGISTER);
-    Wire.write(sensorData);
-    Wire.endTransmission();
-
-    Wire.beginTransmission(TEMPERATURE_ADDRESS);
-    Wire.write(MARK_AS_MASTER);
-    Wire.endTransmission();
+    digitalWrite(8,LOW);
   }
-  else
+  if(isSlave == 20)
   {
-    sensorData = (int)dht11.readHumidity();
+    digitalWrite(8,HIGH);
   }
+
+  Serial.println(isSlave);
 
   delay(50);
 }

@@ -279,7 +279,20 @@ Due to the optimisations of the C++ compiler, the code has an interesting quirk.
 
 Apparently the ISSD supplies cables with no data lines, which meant I was briefly stumped as to why I couldn't detect one of my arduino's. This was fixed by using a different cable.
 
+<!-- TODO: Write a small piece about starting with the temperature device -->
+<!-- Image :) -->
+
 <!-- TODO: Write a small piece about a fault in the register handling -->
+<!-- Took too long, data could not get processed before a new interrupt was raised -->
+
+<!-- TODO: Write a small piece about the message counter -->
+<!-- Messages were skipped or arrived incorrectly -->
+<!-- Simple counter to keep track of how many messages ACTUALLY come through -->
+
+<!-- TODO: Integration Humidity -->
+<!-- Image -->
+
+<!-- TODO: Both -->
 
 ## References
 

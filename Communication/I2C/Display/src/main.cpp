@@ -22,17 +22,24 @@ enum I2CData
 I2CData incomingData = None;
 int Register_Temperature = 0;
 int Register_Humidity = 0;
-int lastBytes = 0;
+int messageCount = 0;
 
 void recieveData(int bytes)
 {
-  int data = Wire.read();
-  if(incomingData == None)
+  int data = -1;
+  data = Wire.read();
+
+  if(data == -1)
+  {
+    return;
+  }
+
+  if(messageCount == 0 && incomingData == None)
   {
     incomingData = (I2CData)data;
-    lastBytes = bytes;
+    messageCount++;
   }
-  else
+  else if(messageCount == 1 && incomingData != None)
   {
     if(incomingData == Temperature)
     {
@@ -43,6 +50,7 @@ void recieveData(int bytes)
       Register_Humidity = data;
     }
     incomingData = None;
+    messageCount = 0;
   }
 }
 
