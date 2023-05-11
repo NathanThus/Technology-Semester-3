@@ -26,12 +26,14 @@ DHT dht11(A0, DHT11);
 
 void onData(int howMany)
 {
-  int inbound = (int)Wire.read();
+  int inbound = Wire.read();
 
   if(inbound != -1)
   {
     isSlave = inbound;
   }
+
+  Wire.flush();
 }
 
 void setup() {
