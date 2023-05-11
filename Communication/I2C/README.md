@@ -277,12 +277,14 @@ I intend to stress test the system by having it run overnight, and then checking
 
 Due to the optimisations of the C++ compiler, the code has an interesting quirk. The registers, which are vital for the functioning of the system, were getting cleaned up. This was due to the fact that the registers were not being viewed as used, and thus the compiler decided to clean them up. This was fixed by adding the volatile keyword to the registers.
 
-## References
+Apparently the ISSD supplies cables with no data lines, which meant I was briefly stumped as to why I couldn't detect one of my arduino's. This was fixed by using a different cable.
 
+<!-- TODO: Write a small piece about a fault in the register handling -->
+
+## References
 
 A Guide to Arduino & the I2C Protocol (Two Wire) | Arduino Documentation. (n.d.). from https://docs.arduino.cc/learn/communication/wire
 
 communication/Toolbox/Standard—NXP I2C bus protocol.pdf · master · Technology / t-sem3-db. (2020, August 25). GitLab. https://git.fhict.nl/technology/t-sem3-db/-/blob/master/communication/Toolbox/Standard%20-%20NXP%20I2C%20bus%20protocol.pdf
 
 Valdez, J., & Becker, J. (2015). Understanding the I2C Bus. https://www.ti.com/lit/ml/slva704/slva704.pdf?ts=1680186606920
-
