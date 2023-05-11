@@ -3,9 +3,9 @@
 #include <DHT.h>
 // I2C ADDRESSES
 
-#define MY_ADDRESS 0x01
-#define HUMIDITY_ADDRESS 0x02
-#define DISPLAY_ADDRESS 0x03
+#define MY_ADDRESS 0x1
+#define HUMIDITY_ADDRESS 0x2
+#define DISPLAY_ADDRESS 0x3
 
 // M2M COMMUNICATION
 
@@ -22,7 +22,7 @@ volatile bool isSlave = 0;
 volatile int sensorData = 0; // Is only used for outbound communication
 
 // DHT11
-DHT dht11(A2, DHT11);
+DHT dht11(A0, DHT11);
 
 void onRecieve(int howMany)
 {
@@ -44,30 +44,29 @@ void onRecieve(int howMany)
 
 void setup() {
   // put your setup code here, to run once:
-  Wire.begin(MY_ADDRESS);
+  dht11.begin();
+  Serial.begin(9600);
   Wire.onReceive(onRecieve);
+  Wire.begin(MY_ADDRESS);
 }
 
 void loop() {
-  if(!isSlave)
+  if(isSlave == 0)
   {
-    Wire.beginTransmission(HUMIDITY_ADDRESS);
-    Wire.write(MARK_AS_SLAVE);
-    Wire.endTransmission();
-
+    // Wire.beginTransmission(HUMIDITY_ADDRESS);
+    // Wire.write(MARK_AS_SLAVE);
+    // Wire.endTransmission();
     Wire.beginTransmission(DISPLAY_ADDRESS);
-    Wire.write(TEMPERATURE_REGISTER);
+    // Wire.write(TEMPERATURE_REGISTER);
     Wire.write(sensorData);
     Wire.endTransmission();
 
-    Wire.beginTransmission(HUMIDITY_ADDRESS);
-    Wire.write(MARK_AS_MASTER);
-    Wire.endTransmission();
+    // Wire.beginTransmission(HUMIDITY_ADDRESS);
+    // Wire.write(MARK_AS_MASTER);
+    // Wire.endTransmission();
   }
-  else
-  {
-    sensorData = (int)dht11.readTemperature();
-  }
+  sensorData = dht11.readTemperature();
+  Serial.println(sensorData);
 
-  delay(50);
+  delay(1000);
 }
