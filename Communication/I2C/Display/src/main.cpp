@@ -2,7 +2,7 @@
 #include <SFE_MicroOLED.h>
 #include <Wire.h>
 
-#define I2C_ADDRESS 0x69
+#define I2C_ADDRESS 0x3
 #define OLED_RESET 9
 #define DC_JUMPER 1
 
@@ -20,35 +20,21 @@ enum I2CData
 // Registers
 
 I2CData incomingData = None;
-int Temperature;
-int Humidity;
+int Register_Temperature = 0;
+int Register_Humidity = 0;
+int lastBytes = 0;
 
-void onRecieve(int bytes)
+void recieveData(int bytes)
 {
-  int inbound = Wire.read();
-  if(incomingData == I2CData::None)
-  {
-    incomingData = (I2CData)inbound;
-  }
-  else
-  {
-    switch(incomingData)
-    {
-      case I2CData::Temperature:
-        Temperature = inbound;
-        break;
-      case I2CData::Humidity:
-        Humidity = inbound;
-        break;
-    }
-    incomingData = I2CData::None;
-  }
+  int data = Wire.read();
+  Register_Temperature = data;
 }
 
 void setup() {
   // put your setup code here, to run once:
+  Wire.onReceive(recieveData);
   Wire.begin(I2C_ADDRESS);
-  
+
   oled.begin();
   oled.setFontType(1);
   oled.clear(ALL);
@@ -76,17 +62,13 @@ void ResetCursor()
   cursorY = 0;
 }
 
-int a = 0;
-int b = 1;
-
 void loop()
 {
-  PrintLine("a = ", a);
-  PrintLine("b = ", b);
-  a += 2;
-  b += 2;
+  PrintLine("T: ", Register_Temperature);
+  PrintLine("H: ", Register_Humidity);
   ResetCursor();
   oled.clear(PAGE);
+
   delay(1000);
 }
 
