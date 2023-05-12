@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "twi.h": "c",
+        "interrupt.h": "c",
+        "io.h": "c",
+        "inttypes.h": "c",
+        "delay.h": "c",
+        "arduino.h": "c"
+    }
+}
