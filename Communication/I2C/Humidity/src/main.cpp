@@ -24,7 +24,7 @@ int cursorY = 0;
 #define OTHER_DEVICE_ADDRESS TEMPERATURE_ADDRESS
 #define CURSOR_Y 16
 #define TITLE "H: "
-#define GATHER_DATA dht11.readHumidity()
+#define GATHER_DATA random(0,100)
 #endif
 
 #ifdef __TEMPERATURE__
@@ -32,21 +32,19 @@ int cursorY = 0;
 #define OTHER_DEVICE_ADDRESS HUMIDITY_ADDRESS
 #define CURSOR_Y 0
 #define TITLE "T: "
-#define GATHER_DATA dht11.readTemperature()
+#define GATHER_DATA random(100,200)
 #endif
+
 
 // M2M COMMUNICATION
 
-#define MARK_AS_SLAVE 10
-#define MARK_AS_MASTER 20
+#define TOKEN 69
 
 // DISPLAY COMMUNICATION
 
 // REGISTER
-
-volatile bool deviceState = 0;
-volatile int sensorData = 0; // Is only used for outbound communication
-
+bool hasToken = true;
+int sensorData = 0; // Is only used for outbound communication
 // DHT11
 DHT dht11(A0, DHT11);
 
@@ -54,18 +52,14 @@ DHT dht11(A0, DHT11);
 void onRecieve(int howMany)
 {
   int inbound = -1;
-  while(Wire.available())
+  while (Wire.available())
   {
     inbound = Wire.read();
   }
 
-  if(inbound == 0)
+  if(inbound == TOKEN)
   {
-    deviceState = false;
-  }
-  else if(inbound == 1)
-  {
-    deviceState = true;
+    hasToken = true;
   }
 }
 
@@ -97,26 +91,22 @@ void ResetCursor()
   oled.setCursor(0,CURSOR_Y);
 }
 
-void loop() {
-  if(deviceState) // Master
+void loop()
+{
+  if(hasToken)
   {
-    // TODO: Switch this to the opposite approach
+    hasToken = false;
 
-    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
-    Wire.write(MARK_AS_SLAVE);
-    Wire.endTransmission();
-
-    ResetCursor();
     PrintLine(TITLE, sensorData);
-    // oled.clear(PAGE); // Commented for now.
-
+    ResetCursor();
+    oled.clear(PAGE);
+    
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
-    Wire.write(MARK_AS_MASTER);
+    Wire.write(TOKEN);
     Wire.endTransmission();
   }
   else
   {
     sensorData = GATHER_DATA;
   }
-
 }
