@@ -10,7 +10,7 @@ For the purposes of this project, I'll be implementing two DHT11 sensors, and an
 
 While this does not adhere to the I2C specification, it is a simple solution to the problem. The hardware based solution is based on using GPIO pins to force control of the bus, by directly controlling another master. Due to the requirements of the project, this solution is not applicable.
 
-### Token based solution 
+### Token based solution
 
 An access token is passed in a regular pattern between devices. This token is used to determine which device has control of the bus. The token is passed from device to device, until it reaches the device that wants to take control of the bus. The device that wants control of the bus waits for availability of the token, and then takes control of the bus. The device then performs the required actions, and passes the token to the next device. This goes on until the system shuts down. In pseudocode, this would look like the following:
 
@@ -269,20 +269,22 @@ The act of taking control of the bus is slightly more complex however. The devic
 
 The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus. After doing this, a small delay is added to prevent the device from immediately taking control of the bus again. If I wanted to, I could randomise this delay, but for the purposes of easy prototyping, I will not.
 
-### Testing
+## Testing
 
 I intend to stress test the system by having it run overnight, and then checking the data in the morning. If the data still updates frequently, I will consider this a success.
 
-### Observations
+### Observations & Reworking
 
 Due to the optimisations of the C++ compiler, the code has an interesting quirk. The registers, which are vital for the functioning of the system, were getting cleaned up. This was due to the fact that the registers were not being viewed as used, and thus the compiler decided to clean them up. This was fixed by adding the volatile keyword to the registers.
 
 Apparently the ISSD supplies cables with no data lines, which meant I was briefly stumped as to why I couldn't detect one of my arduino's. This was fixed by using a different cable.
 
 <!-- TODO: Write a small piece about starting with the temperature device -->
-<!-- Image :) -->
+The first step in the process was writing from a Master arduino, to the Display Slave Arduino. This was handled by creating a basic protocol, where the master would send one byte of data, the actual temperature. This was then displayed on the display.
+!["Working Temperature Display"](./Temperature_Integration_1.png)
 
 <!-- TODO: Write a small piece about a fault in the register handling -->
+Due to poor optimisation on my behalf, as soon as I tried to integrate a register system (where the master would send two bytes of data, the first being the register, the second being the data), the system broke. This was due to the fact that the code tasked with injecting the data into the register was poorly optimised, meaning that the master would send new data to the bus, before the original data could be processed. This was fixed with some minor optimisations to the code.
 <!-- Took too long, data could not get processed before a new interrupt was raised -->
 
 <!-- TODO: Write a small piece about the message counter -->
@@ -295,7 +297,20 @@ Apparently the ISSD supplies cables with no data lines, which meant I was briefl
 <!-- TODO: Both -->
 
 <!-- TODO: Write about 1st review with Felix -->
+
+After reviewing my admittedly not-exactly-spectacular code, which suffered from a major case of "Demo Effect", A few key improvements were suggested.
+
+#### Bus Control
+
+The system for deciding who has control of the bus is flawed. Two masters could continously fight in an attempt to establish dominance, which would lead to poor communication and performance. This could be fixed by implementing a token passing system, where the master would have to wait for the token to be passed to it, before it could send data.
+
+#### Reduce device count
+
+While using 3 arduino's to contorl the various pieces of the system is a decent Idea, the display itself is an I2C device. With two Redboards, it could easily be controlled by both of them.
+Then, using the token passing system, in addition to passing the data and token to the other device, the device could also pass the data to the display.
+
 <!-- TODO: Write about token passing solution -->
+<!-- TODO: Write about passing the data to the second redboard -->
 
 ## References
 
