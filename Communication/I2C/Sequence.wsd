@@ -1,0 +1,57 @@
+@startuml Register_Sequence
+
+title Standard loop
+
+Entity Arduino1
+Entity Arduino2
+Entity DisplayArduino
+Entity OLED
+
+Arduino1 -> Arduino2 : Wire.write(MARK_AS_SLAVE)
+Arduino2 --> Arduino1 : ACK
+
+Arduino1 -> DisplayArduino : Wire.Write(sensorData)
+DisplayArduino --> Arduino1 : ACK
+
+Arduino1 -> Arduino2 : Wire.write(MARK_AS_MASTER)
+Arduino2 --> Arduino1 : ACK
+
+@enduml
+
+
+@startuml Token_Passing
+
+Title Example of a typical loop
+
+Entity Arduino1
+Entity Arduino2
+Entity OLED
+
+Arduino1 -> OLED : OLED.print(TITLE)
+OLED --> Arduino1 : ACK
+Arduino1 -> OLED : OLED.print(sensorData)
+OLED --> Arduino1 : ACK
+
+Arduino1 -> OLED : OLED.SetCursor(0,16)
+OLED --> Arduino1 
+
+Arduino1 -> OLED : OLED.print(TITLE)
+OLED --> Arduino1 : ACK
+Arduino1 -> OLED : OLED.print(sensorData)
+OLED --> Arduino1 : ACK
+
+Arduino1 -> OLED : OLED.SetCursor(0,0)
+OLED --> Arduino1 
+
+Arduino1 -> OLED : OLED.display()
+OLED --> Arduino1
+
+Arduino1 -> OLED : OLED.clear(PAGE)
+OLED --> Arduino1
+
+Arduino1 -> Arduino2 : Wire.write(sensorData)
+Arduino2 --> Arduino1 : ACK
+Arduino1 -> Arduino2 : Wire.write(TOKEN)
+Arduino2 --> Arduino1 : ACK
+
+@enduml

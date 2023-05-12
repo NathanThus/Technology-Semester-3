@@ -63,7 +63,19 @@ After speaking to Felix, a few things were clarified. While I was initially unde
 
 After a brief discussion of options, we decided that the best option would be to use a register based system. This would allow for the system to be easily expanded, and would allow for the system to be easily debugged.
 
+## Register based Sequence Diagram
+
+![Register based Sequence Diagram](./Sequence/Register_Sequence.png)
+
 ## Bus Arbitration
+
+### Hardware Bus Arbitration
+
+The I2C bus uses a hardware based arbitration system. This is implemented using the SDA and SCL lines. The SDA line is used to transmit data, and the SCL line is used to transmit the clock. The SDA line is monitored by all devices on the bus. If a device is transmitting a 1, and another device is transmitting a 0, the device transmitting a 0 will detect a 1 on the SDA line, and will stop transmitting. This is how the bus arbitration is implemented.
+
+!["Hardware based Bus Arbitration"](./HardwareArbitration.png)
+
+### Wire Library
 
 The Arduino Wire Library has it's own implementation of bus arbitration. This is implemented in the `twi.c` file. The following is a list of the states that the bus can be in:
 
@@ -121,19 +133,27 @@ This section of code is responsible for when the Slave Transmitter (as indicated
 
 This allows the slave to attempt sending data to the master, once again.
 
-## Implementation
+## Adresses
 
 ### Device Addresses
 
 | Device | Address |
 |--------|---------|
-| Temperature | 0x01 |
-| Humidity | 0x02 |
-| Display-Arduino | 0x03 |
-| OLED Display | 0x060 |
+| Temperature | 0x1 |
+| Humidity | 0x2 |
+| Display-Arduino | 0x3 |
+| OLED Display | 60 |
 _The OLED display has it's own built in address_
 
-#### Hardware
+### Register Addresses
+
+| Register | Address |
+|----------|---------|
+| Control | 0x0 |
+| Temperature | 0x1 |
+| Humidity | 0x2 |
+
+### Hardware
 
 | Quantity | Device | Description |
 |-------------|--------|-------------|
@@ -141,7 +161,7 @@ _The OLED display has it's own built in address_
 | 2 | DHT11 | Used for temperature and humidity sensing |
 | 1 | OLED Display | Used for displaying the data |
 
-![Circuit Diagram](./Schematic.png) _Circuit Diagram_
+![Circuit Diagram](./Schematic.png)
 
 Not featured is the display, although this is connected to the slave arduino via the proprietary QWIIC connector, used by Sparkfun.
 
@@ -269,34 +289,31 @@ The act of taking control of the bus is slightly more complex however. The devic
 
 The act of relinquishing control of the bus is fairly simple. The device will simply set the internal register to 0x00, indicating that it no longer has control of the bus. After doing this, a small delay is added to prevent the device from immediately taking control of the bus again. If I wanted to, I could randomise this delay, but for the purposes of easy prototyping, I will not.
 
-## Testing
-
-I intend to stress test the system by having it run overnight, and then checking the data in the morning. If the data still updates frequently, I will consider this a success.
-
-### Observations & Reworking
+## Observations & Reworking
 
 Due to the optimisations of the C++ compiler, the code has an interesting quirk. The registers, which are vital for the functioning of the system, were getting cleaned up. This was due to the fact that the registers were not being viewed as used, and thus the compiler decided to clean them up. This was fixed by adding the volatile keyword to the registers.
 
 Apparently the ISSD supplies cables with no data lines, which meant I was briefly stumped as to why I couldn't detect one of my arduino's. This was fixed by using a different cable.
 
-<!-- TODO: Write a small piece about starting with the temperature device -->
 The first step in the process was writing from a Master arduino, to the Display Slave Arduino. This was handled by creating a basic protocol, where the master would send one byte of data, the actual temperature. This was then displayed on the display.
+
 !["Working Temperature Display"](./Temperature_Integration_1.png)
 
-<!-- TODO: Write a small piece about a fault in the register handling -->
-Due to poor optimisation on my behalf, as soon as I tried to integrate a register system (where the master would send two bytes of data, the first being the register, the second being the data), the system broke. This was due to the fact that the code tasked with injecting the data into the register was poorly optimised, meaning that the master would send new data to the bus, before the original data could be processed. This was fixed with some minor optimisations to the code.
-<!-- Took too long, data could not get processed before a new interrupt was raised -->
+Due to poor optimisation on my behalf, as soon as I tried to integrate a register system (where the master would send two bytes of data, the first being the register, the second being the data), the system broke. This was due to the fact that the code tasked with injecting the data into the register was poorly optimised (Arduino Strings are not optimal for this), meaning that the master would send new data to the bus, before the original data could be processed. This was fixed with some minor optimisations to the code.
 
-<!-- TODO: Write a small piece about the message counter -->
-<!-- Messages were skipped or arrived incorrectly -->
-<!-- Simple counter to keep track of how many messages ACTUALLY come through -->
+After introducing the register system for the display device, I discovered that several messages we're getting lost, as I was seeing the register address being displayed on the screen. While theoretically feasible, I had my doubts that the room dropped 22 degrees in the span of a second. This was fixed by adding a message counter, which would increment every time a message was recieved. This allowed me to see that the messages were indeed being recieved, and would filter the messages into the correct registers accordingly.
 
-<!-- TODO: Integration Humidity -->
-<!-- Image -->
+After successfully integrating the temperature sensor, I moved on to the humidity sensor. While I expected this to be a fairly simple process, this sadly wasn't the case. It took a fair bit of time to get the arduino's to communicate with each other, and even then, one device seemed to have a more significant presence on the bus than the other. This was fixed by adding a delay to the device that was having issues, which allowed the other device to communicate with the display.
 
-<!-- TODO: Both -->
+In hindsight, this was most likely caused by the hardware based bus arbitration doing it's job correctly, and I should have been able to detect this and work around it.
 
-<!-- TODO: Write about 1st review with Felix -->
+Please note that the photo was poorly timed, and the temperature wasn't 0 degrees. As for a wiring fault on my behalf, I used a random value to simulate data. The error in wiring was found briefly later.
+
+!["Working Humidity"](./Humidity_Integration_1.png)
+
+Integrating the temperature and humidity sensors was not exactly a simple process. The integration was plagued by timing and debugging issues, resulting in a fairly poor demo. This was "fixed" with delays, which allowed the devices to communicate with each other. This did however, cause the display to be interrupted mid update, which caused the display to flicker.
+
+### Review
 
 After reviewing my admittedly not-exactly-spectacular code, which suffered from a major case of "Demo Effect", A few key improvements were suggested.
 
@@ -309,13 +326,54 @@ The system for deciding who has control of the bus is flawed. Two masters could 
 While using 3 arduino's to contorl the various pieces of the system is a decent Idea, the display itself is an I2C device. With two Redboards, it could easily be controlled by both of them.
 Then, using the token passing system, in addition to passing the data and token to the other device, the device could also pass the data to the display.
 
-<!-- TODO: Write about token passing solution -->
-<!-- TODO: Write about passing the data to the second redboard -->
+### New Sequence Diagram
+
+!["New Sequence Diagram"](./Sequence/Token_Passing.png)
+
+### Implementing Token Passing
+
+Using the concepts learned leading up the the past review, I decided to start work on a token passing solution. Starting off by creating a basic token passing system, which would light up an LED if the device had the token, and turn it off as soon as it has passed it along.
+
+After this worked (mostly) flawlessly, I decided to add the display into the code. Afte reusing several pieces of code for the display, I was able to get the display to show the temperature and humidity. However, the display would only show the temperature OR the humidity, depending on which specific device had the token at that stage.
+
+The next step was to integrate passing data alongside the token. At first, I attempted to use Arduino Strings to parse data along the I2C line, where a typical message would have been `D:22`, with D indicating the fact it's data being passed, not a token. However, I was reminded of the fact that arduino strings are impressively slow, requiring a minor rework. Instead, I decided to simply pass the values over I2C, with the message counter being used to determine what data was being passed.
+
+```cpp
+void loop()
+{
+  if(hasToken)
+  {
+    hasToken = false;
+
+    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
+    Wire.write(sensorData);
+    Wire.endTransmission();
+
+    PrintLine(TITLE_TEMPERATURE, sensorData);
+    PrintLine(TITLE_HUMIDITY, otherSensorData);
+    ResetCursor();
+
+    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
+    Wire.write(TOKEN);
+    Wire.endTransmission();
+  }
+  sensorData = GATHER_DATA;
+}
+```
+
+After this was done, I was able to get the display to show both the temperature and humidity, with the data being passed between the two devices.
+
+!["Working Multi-Master Communication"](./Multi_Master_Communication.png)
+
+The code checks to see what data it should be, and after running it for several hours, no faults were found.
 
 ## References
 
-A Guide to Arduino & the I2C Protocol (Two Wire) | Arduino Documentation. (n.d.). from https://docs.arduino.cc/learn/communication/wire
+A Guide to Arduino & the I2C Protocol (Two Wire) | Arduino Documentation. (n.d.). from
+https://docs.arduino.cc/learn/communication/wire
 
-communication/Toolbox/Standard—NXP I2C bus protocol.pdf · master · Technology / t-sem3-db. (2020, August 25). GitLab. https://git.fhict.nl/technology/t-sem3-db/-/blob/master/communication/Toolbox/Standard%20-%20NXP%20I2C%20bus%20protocol.pdf
+communication/Toolbox/Standard—NXP I2C bus protocol.pdf · master · Technology / t-sem3-db. (2020, August 25). GitLab.
+ https://git.fhict.nl/technology/t-sem3-db/-/blob/master/communication/Toolbox/Standard%20-%20NXP%20I2C%20bus%20protocol.pdf
 
-Valdez, J., & Becker, J. (2015). Understanding the I2C Bus. https://www.ti.com/lit/ml/slva704/slva704.pdf?ts=1680186606920
+Valdez, J., & Becker, J. (2015). Understanding the I2C Bus. 
+https://www.ti.com/lit/ml/slva704/slva704.pdf?ts=1680186606920
