@@ -48,16 +48,28 @@ void setup() {
 
 void loop()
 {
-  if(isSlave == 10)
+  if(isSlave == MARK_AS_MASTER)
   {
-    digitalWrite(8,LOW);
+    digitalWrite(8, HIGH);
+    // I can now send my messages!
+    Wire.beginTransmission(TEMPERATURE_ADDRESS);
+    Wire.write(MARK_AS_SLAVE);
+    Wire.endTransmission();
+
+    Serial.println(MARK_AS_SLAVE);
+
+    delay(1000);
+
+    Wire.beginTransmission(TEMPERATURE_ADDRESS);
+    Wire.write(MARK_AS_MASTER);
+    Wire.endTransmission();
+
+    Serial.println(MARK_AS_MASTER);
+
+    delay(1000);
   }
-  if(isSlave == 20)
+  else
   {
-    digitalWrite(8,HIGH);
+    digitalWrite(8, LOW);
   }
-
-  Serial.println(isSlave);
-
-  delay(50);
 }
