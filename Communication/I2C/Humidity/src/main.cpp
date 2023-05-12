@@ -14,7 +14,6 @@ int cursorY = 0;
 // I2C ADDRESSES
 #define TEMPERATURE_ADDRESS 1
 #define HUMIDITY_ADDRESS 2
-#define DISPLAY_ADDRESS 3
 
 // DEVICE ID
 #define __HUMIDITY__
@@ -23,43 +22,55 @@ int cursorY = 0;
 #define MY_ADDRESS HUMIDITY_ADDRESS
 #define OTHER_DEVICE_ADDRESS TEMPERATURE_ADDRESS
 #define CURSOR_Y 16
-#define TITLE "H: "
-#define GATHER_DATA random(0,100)
+#define GATHER_DATA (int)dht11.readHumidity()
 #endif
 
 #ifdef __TEMPERATURE__
 #define MY_ADDRESS TEMPERATURE_ADDRESS
 #define OTHER_DEVICE_ADDRESS HUMIDITY_ADDRESS
 #define CURSOR_Y 0
-#define TITLE "T: "
-#define GATHER_DATA random(100,200)
+#define GATHER_DATA (int)dht11.readTemperature()
 #endif
 
+// GENERAL
+
+#define TITLE_TEMPERATURE "T: "
+#define TITLE_HUMIDITY "H: "
 
 // M2M COMMUNICATION
-
 #define TOKEN 69
 
 // DISPLAY COMMUNICATION
 
 // REGISTER
-bool hasToken = true;
+bool hasToken = false;
 int sensorData = 0; // Is only used for outbound communication
+int otherSensorData = 0; // Is only used for inbound communication
+
 // DHT11
 DHT dht11(A0, DHT11);
 
-// ONLY USED FOR M2M COMMUNICATION
+int messageCounter = 0;
+
+
 void onRecieve(int howMany)
 {
-  int inbound = -1;
-  while (Wire.available())
+  int inbound = 0;
+
+  while(Wire.available() > 0)
   {
     inbound = Wire.read();
   }
 
-  if(inbound == TOKEN)
+  if(messageCounter == 0)
+  {
+    otherSensorData = inbound;
+    messageCounter++;
+  }
+  if(messageCounter == 1 && inbound == TOKEN)
   {
     hasToken = true;
+    messageCounter = 0;
   }
 }
 
@@ -68,13 +79,13 @@ void setup()
   dht11.begin();
   Wire.onReceive(onRecieve);
   Wire.begin(MY_ADDRESS);
-  
-  //Add display code
+
   oled.begin();
   oled.setFontType(1);
   oled.clear(ALL);
   oled.display();
   oled.clear(PAGE);
+  Serial.begin(9600);
 }
 
 void PrintLine(String title, int data)
@@ -88,7 +99,7 @@ void PrintLine(String title, int data)
 
 void ResetCursor()
 {
-  oled.setCursor(0,CURSOR_Y);
+  oled.setCursor(0, 0);
 }
 
 void loop()
@@ -96,17 +107,17 @@ void loop()
   if(hasToken)
   {
     hasToken = false;
+    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
+    Wire.write(sensorData);
+    Wire.endTransmission();
 
-    PrintLine(TITLE, sensorData);
+    PrintLine(TITLE_TEMPERATURE, otherSensorData);
+    PrintLine(TITLE_HUMIDITY, sensorData);
     ResetCursor();
-    oled.clear(PAGE);
-    
+
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(TOKEN);
     Wire.endTransmission();
   }
-  else
-  {
     sensorData = GATHER_DATA;
-  }
 }
