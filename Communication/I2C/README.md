@@ -294,6 +294,9 @@ Apparently the ISSD supplies cables with no data lines, which meant I was briefl
 
 <!-- TODO: Both -->
 
+<!-- TODO: Write about 1st review with Felix -->
+<!-- TODO: Write about token passing solution -->
+
 ## References
 
 A Guide to Arduino & the I2C Protocol (Two Wire) | Arduino Documentation. (n.d.). from https://docs.arduino.cc/learn/communication/wire
