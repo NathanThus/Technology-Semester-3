@@ -3,74 +3,84 @@
 #include <DHT.h>
 // I2C ADDRESSES
 
-#define MY_ADDRESS 0x1
-#define HUMIDITY_ADDRESS 0x2
-#define DISPLAY_ADDRESS 0x3
+#define MY_ADDRESS 50
+#define HUMIDITY_ADDRESS 60
+#define DISPLAY_ADDRESS 3
 
 // M2M COMMUNICATION
 
-#define MARK_AS_SLAVE 0x0
-#define MARK_AS_MASTER 0x1
+#define MARK_AS_SLAVE 10
+#define MARK_AS_MASTER 20
 
 // DISPLAY COMMUNICATION
 
-#define TEMPERATURE_REGISTER 0x0
+#define TEMPERATURE_REGISTER 0
 
 // REGISTER
 
-volatile bool isSlave = 0;
-volatile int sensorData = 0; // Is only used for outbound communication
+int busState = MARK_AS_MASTER;
+int sensorData = 0; // Is only used for outbound communication
 
 // DHT11
 DHT dht11(A0, DHT11);
 
-void onRecieve(int howMany)
+int testData = 0;
+
+void onData(int howMany)
 {
   int inbound = -1;
-  while(Wire.available())
+  while(Wire.available() > 0)
   {
     inbound = Wire.read();
   }
 
-  if(inbound == 0)
+
+  if(inbound != -1)
   {
-    isSlave = false;
+    busState = inbound;
+    testData = inbound;
   }
-  else if(inbound == 1)
-  {
-    isSlave = true;
-  }
+
+  Wire.flush();
 }
 
 void setup() {
   // put your setup code here, to run once:
   dht11.begin();
   Serial.begin(9600);
-  Wire.onReceive(onRecieve);
+  Wire.onReceive(onData);
+  Wire.setTimeout(1000);
   Wire.begin(MY_ADDRESS);
+
+  pinMode(8, OUTPUT);
 }
 
-void loop() {
-  if(isSlave == 0)
+void loop()
+{
+  if(busState == MARK_AS_MASTER)
   {
-    // Wire.beginTransmission(HUMIDITY_ADDRESS);
-    // Wire.write(MARK_AS_SLAVE);
-    // Wire.endTransmission();
-
-    Wire.beginTransmission(DISPLAY_ADDRESS);
-    Wire.write(TEMPERATURE_REGISTER);
-    Wire.endTransmission();
-    
-    Wire.beginTransmission(DISPLAY_ADDRESS);
-    Wire.write(sensorData);
+    // I can now send my messages!
+    Wire.beginTransmission(HUMIDITY_ADDRESS);
+    Wire.write(MARK_AS_SLAVE);
     Wire.endTransmission();
 
-    // Wire.beginTransmission(HUMIDITY_ADDRESS);
-    // Wire.write(MARK_AS_MASTER);
-    // Wire.endTransmission();
+    digitalWrite(8, HIGH);
+    delay(50);
+
+    Wire.beginTransmission(HUMIDITY_ADDRESS);
+    Wire.write(MARK_AS_MASTER);
+    Wire.endTransmission();
+    delay(random(1,50));
   }
-  sensorData = dht11.readTemperature();
-  Serial.println(sensorData);
-
-  delay(1000);
+  else if (busState == MARK_AS_SLAVE)
+  {
+    digitalWrite(8, LOW);
+    delay(1000);
+  }
+  
+  if(testData != 0)
+  {
+    Serial.println(testData);
+    testData = 0;
+  }
 }
