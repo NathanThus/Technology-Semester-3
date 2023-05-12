@@ -34,6 +34,7 @@ void onData(int howMany)
     inbound = Wire.read();
   }
 
+
   if(inbound != -1)
   {
     busState = inbound;

@@ -57,14 +57,15 @@ void loop()
 {
   if(busState == MARK_AS_MASTER)
   {
-    
+
     // I can now send my messages!
     Wire.beginTransmission(TEMPERATURE_ADDRESS);
     Wire.write(MARK_AS_SLAVE);
     Wire.endTransmission();
-    
-    digitalWrite(8, HIGH);
-    delay(50);
+
+    Serial.println(MARK_AS_SLAVE);
+
+    delay(1000);
 
     Wire.beginTransmission(TEMPERATURE_ADDRESS);
     Wire.write(MARK_AS_MASTER);
@@ -81,5 +82,13 @@ void loop()
   {
     Serial.println(testData);
     testData = 0;
+  }
+    Serial.println(MARK_AS_MASTER);
+
+    delay(1000);
+  }
+  else
+  {
+    digitalWrite(8, LOW);
   }
 }
