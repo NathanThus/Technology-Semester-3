@@ -54,7 +54,7 @@ state Processing {
         due to the exit state condition of the Kneading state
     end note
     Kneading -> Rising
-    Rising -> Baking : [oven.IsOn == False]
+    Rising -> Baking : [TimerElapsed]
     Baking -right-> Done : [oven.IsOn == False]
     Done -> [*] : [TimerElapsed]
 
@@ -72,5 +72,5 @@ state Processing {
     Cancel->[*]
 }
 
-Processing --> Standby : [Event_OvenDone]
+Processing --> Standby
 @enduml

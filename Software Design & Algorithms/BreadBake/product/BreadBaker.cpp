@@ -10,6 +10,12 @@ int bakeTime = 0;
 
 int MotorSwitches = 0;
 
+int delayTimer = 0;
+
+//Due to unforseen technical limitations, I've done the following:
+// bool yeastHasBeenAdded = false;
+// bool extrasHaveBeenAdded = false;
+
 BreadBaker::BreadBaker(
             IOven& oven, ITimer& timer, IKneadMotor& motor, IYeastTray& yeast,
             IExtraIngredientsTray& extras, IDisplay& display,
@@ -73,37 +79,52 @@ void BreadBaker::HandleEvent(Events ev)
 
             if(MENU_BUTTON_PRESSED)
             {
-                if(programID > 5)
+                if(programID >= 6)
                 {
-                    programID = 0;
+                    programID = 1;
                 }
                 else
                 {
                     programID++;
                 }
+                selectedProgram = GetProgram(programID);
+                display.SetMenu(programID);
             }
 
             if(ev == START_BUTTON_PRESSED)
             {
-                currentState = S_RESTING;
-                display.SetCurrentTask(Tasks::WAITING);
-            }
-
-            if(ev == TIMER_UP_BUTTON_PRESSED)
-            {
-                bakeTime += 10;
-                if(bakeTime > 90)
+                if(oven.GetTemperature() < 50)
                 {
-                    bakeTime = 90;
+                    currentState = S_RESTING;
+                    display.SetCurrentTask(Tasks::WAITING);
+                    int minutes = selectedProgram.waiting + selectedProgram.kneading + selectedProgram.rising + selectedProgram.baking;
+                    // Convert minutes to hours and minutes
+                    int hours = minutes / 60;
+                    minutes = minutes % 60;
+                    display.SetTime(hours, minutes);
+                    startButton.LedOff();
+                    timer.Set(delayTimer);
                 }
             }
 
-            if(ev == TIMER_DOWN_BUTTON_PRESSED)
+            if(programID == 5)
             {
-                bakeTime -= 10;
-                if(bakeTime < 30)
+                if(ev == TIMER_UP_BUTTON_PRESSED)
                 {
-                    bakeTime = 30;
+                    bakeTime += 10;
+                    if(bakeTime > 90)
+                    {
+                        bakeTime = 90;
+                    }
+                }
+
+                if(ev == TIMER_DOWN_BUTTON_PRESSED)
+                {
+                    bakeTime -= 10;
+                    if(bakeTime < 30)
+                    {
+                        bakeTime = 30;
+                    }
                 }
             }
             break;
@@ -124,17 +145,29 @@ void BreadBaker::HandleEvent_Processing(Events ev)
             {
                 currentState = S_DONE;
                 timer.Set(5 MIN);
+                display.SetCurrentTask(Tasks::DONE);
             }
 
             if(ev == MENU_BUTTON_LONG_PRESSED)
             {
                 currentState = S_CANCEL;
-                oven.Cancel();
             }
             break;
         }
         case S_KNEADING:
         {
+            if(MotorSwitches == 0)
+            {
+                if(selectedProgram.addExtras)
+                {
+                    extras.Drop(15 MIN);
+                }
+                if(selectedProgram.addYeast)
+                {
+                    yeast.Drop(selectedProgram.kneading / 2);
+                }
+            }
+
             if(ev == TIMER_TIMEOUT && MotorSwitches < selectedProgram.kneading)
             {
                 if(MotorSwitches % 2 == 0)
@@ -147,11 +180,12 @@ void BreadBaker::HandleEvent_Processing(Events ev)
                     motor.Stop();
                     motor.TurnLeft();
                 }
+
                 MotorSwitches++;
                 timer.Set(1 MIN);
             }
 
-            if(ev == TIMER_TIMEOUT && MotorSwitches >= selectedProgram.kneading)
+            if(ev == TIMER_TIMEOUT && MotorSwitches == selectedProgram.kneading)
             {
                 currentState = S_RISING;
                 display.SetCurrentTask(Tasks::RISING);
@@ -160,15 +194,13 @@ void BreadBaker::HandleEvent_Processing(Events ev)
 
             if(ev == MENU_BUTTON_LONG_PRESSED)
             {
-                yeast.Cancel();
-                extras.Cancel();
                 currentState = S_CANCEL;
             }
             break;
         }
         case S_RISING:
         {
-            if(ev == TIMER_TIMEOUT)
+            if(ev == OVEN_DONE)
             {
                 currentState = S_BAKING;
                 if(selectedProgram.baking == GetProgram(5).baking)
@@ -195,15 +227,6 @@ void BreadBaker::HandleEvent_Processing(Events ev)
             {
                 currentState = S_KNEADING;
                 display.SetCurrentTask(Tasks::KNEADING);
-                if(selectedProgram.addYeast)
-                {
-                    yeast.Drop(selectedProgram.kneading / 2);
-                }
-
-                if(selectedProgram.addExtras)
-                {
-                    extras.Drop(15 MIN);
-                }
             }
 
             if(ev == MENU_BUTTON_LONG_PRESSED)
@@ -218,11 +241,25 @@ void BreadBaker::HandleEvent_Processing(Events ev)
             {
                 currentState = S_STANDBY;
             }
+            display.SetCurrentTask(Tasks::DONE);
+            startButton.LedOn();
             break;
         }
         case S_CANCEL:
         {
             currentState = S_STANDBY;
+            display.SetCurrentTask(Tasks::DONE);
+
+            if(oven.IsOn())
+            {
+                oven.Cancel();
+            }            
+
+            yeast.Cancel();
+            extras.Cancel();
+
+            motor.Stop();            
+            startButton.LedOn();
             break;
         }
         default:
