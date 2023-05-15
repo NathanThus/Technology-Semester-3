@@ -28,6 +28,8 @@ Loop forever
 }
 ```
 
+\pagebreak
+
 ### Register based control
 
 With this concept, the goal of either master is to take control of the bus by writing to the control register. The control register is a 1 byte register, which is located at address 0x00. The control register is used to set the state of the bus. The following states are possible:
@@ -63,6 +65,8 @@ After speaking to Felix, a few things were clarified. While I was initially unde
 
 After a brief discussion of options, we decided that the best option would be to use a register based system. This would allow for the system to be easily expanded, and would allow for the system to be easily debugged.
 
+\pagebreak
+
 ## Register based Sequence Diagram
 
 ![Register based Sequence Diagram](./Sequence/Register_Sequence.png)
@@ -74,6 +78,8 @@ After a brief discussion of options, we decided that the best option would be to
 The I2C bus uses a hardware based arbitration system. This is implemented using the SDA and SCL lines. The SDA line is used to transmit data, and the SCL line is used to transmit the clock. The SDA line is monitored by all devices on the bus. If a device is transmitting a 1, and another device is transmitting a 0, the device transmitting a 0 will detect a 1 on the SDA line, and will stop transmitting. This is how the bus arbitration is implemented.
 
 !["Hardware based Bus Arbitration"](./HardwareArbitration.png)
+
+\pagebreak
 
 ### Wire Library
 
@@ -87,6 +93,8 @@ The Arduino Wire Library has it's own implementation of bus arbitration. This is
 ```
 
 In the case that the Master Transmitter (Indicated my `_MT_`) loses the bus arbitration (Indicated by `_ARB_LOST_`), the bus is released. This is done by calling the `twi_releaseBus()` function. This releases the bus then sets itself to an idle state, as seen below.
+
+\pagebreak
 
 ```cpp
 void twi_releaseBus(void)
@@ -133,6 +141,8 @@ This section of code is responsible for when the Slave Transmitter (as indicated
 
 This allows the slave to attempt sending data to the master, once again.
 
+\pagebreak
+
 ## Adresses
 
 ### Device Addresses
@@ -161,6 +171,9 @@ _The OLED display has it's own built in address_
 | 2 | DHT11 | Used for temperature and humidity sensing |
 | 1 | OLED Display | Used for displaying the data |
 
+
+\pagebreak
+
 ![Circuit Diagram](./Schematic.png)
 
 Not featured is the display, although this is connected to the slave arduino via the proprietary QWIIC connector, used by Sparkfun.
@@ -168,6 +181,8 @@ Not featured is the display, although this is connected to the slave arduino via
 ## Display
 
 I have made a function for printing lines to the display. This function will automatically increment the cursor, so that the next line will be printed below the previous line. This function also automatically displays the data, so that the user does not have to call the display function. The function is as follows:
+
+\pagebreak
 
 ```cpp
 
@@ -208,6 +223,8 @@ void loop()
 ### Recieving I2C
 
 To recieve data from the I2C bus, I have created a function that is called when data is recieved. This function will read the data, and then store it in a register. The function is as follows:
+
+\pagebreak
 
 ```cpp
 void onRecieve(int bytes)
@@ -309,6 +326,7 @@ In hindsight, this was most likely caused by the hardware based bus arbitration 
 
 Please note that the photo was poorly timed, and the temperature wasn't 0 degrees. As for a wiring fault on my behalf, I used a random value to simulate data. The error in wiring was found briefly later.
 
+
 !["Working Humidity"](./Humidity_Integration_1.png)
 
 Integrating the temperature and humidity sensors was not exactly a simple process. The integration was plagued by timing and debugging issues, resulting in a fairly poor demo. This was "fixed" with delays, which allowed the devices to communicate with each other. This did however, cause the display to be interrupted mid update, which caused the display to flicker.
@@ -325,6 +343,8 @@ The system for deciding who has control of the bus is flawed. Two masters could 
 
 While using 3 arduino's to contorl the various pieces of the system is a decent Idea, the display itself is an I2C device. With two Redboards, it could easily be controlled by both of them.
 Then, using the token passing system, in addition to passing the data and token to the other device, the device could also pass the data to the display.
+
+\pagebreak
 
 ### New Sequence Diagram
 
