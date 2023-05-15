@@ -116,6 +116,10 @@ class Timer
     /// @brief Resets the interrupt for the timer.
     void ResetInterrupt();
 
+    /// @brief Sends a PWM signal.
+    /// @param signal The signal to send.
+    void SendPWMSignal(int signal);
+
     private:
     TIM_TypeDef* timer;
 
@@ -138,7 +142,6 @@ class Timer
     /// @brief Sets the timer to external clock mode.
     void SetExternalClockMode();
 
-
     /// @brief Sets the timer to internal clock mode.
     /// @param channel The channel to set.
     /// @param type The type of the channel.
@@ -148,7 +151,6 @@ class Timer
     /// @param channel The channel to set.
     /// @param type The type of the channel.
     void SetInputCaptureChannel(uint16_t channel, CC_ChannelType type);
-
 
     /// @brief Sets the output compare mode for the timer.
     void SetOutputCompareMode();

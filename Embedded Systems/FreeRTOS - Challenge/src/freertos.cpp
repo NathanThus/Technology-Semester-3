@@ -24,7 +24,6 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include <string.h>
-#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -173,9 +172,9 @@ void startSerialTask(void *argument)
 
   for (;;)
   {
-    if(HAL_UART_Receive(&huart2, (int16_t *)&termninalInput, 1, 1000) == HAL_OK)
+    if(HAL_UART_Receive(&huart2, (uint8_t *)&termninalInput, 1, 1000) == HAL_OK)
     {
-      // Data received
+      pwmInputValue = termninalInput;
     }
   }
   /* USER CODE END StartDefaultTask */
@@ -190,7 +189,12 @@ void startPWMTask(void *argument)
   watchDog.Start();
   for (;;)
   {
+    // Data Transmission
+    pwmPos = pwmInput.GetPWMInput();
+    HAL_UART_Transmit(&huart2, (uint8_t *)&pwmPos, 4, 1000);
 
+    //PWM Signal
+    pwmOutput.SendPWMSignal(pwmInputValue);
     watchDog.Feed();
   }
 

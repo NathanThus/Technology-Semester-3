@@ -142,6 +142,11 @@ void Timer::ResetInterrupt()
     timer->SR &= ~TIM_SR_UIF;
 }
 
+void Timer::SendPWMSignal(int signal)
+{
+    timer->CCR1 = signal;
+}
+
 void Timer::Enable()
 {
     timer->CR1 |= TIM_CR1_CEN;
@@ -150,14 +155,4 @@ void Timer::Enable()
 int Timer::GetPWMInput()
 {
     return timer->CCR2;
-}
-
-void Timer::ResetInterrupt()
-{
-    timer->SR &= ~TIM_SR_UIF;
-}
-
-void Timer::Enable()
-{
-    timer->CR1 |= TIM_CR1_CEN;
 }

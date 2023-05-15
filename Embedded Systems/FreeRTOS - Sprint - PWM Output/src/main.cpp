@@ -124,20 +124,12 @@ int main(void)
   {
     
     /* USER CODE END WHILE */
-    for (size_t i = 0; i < 100; i++)
+    for (size_t i = 0; i < 20; i++)
     {
       TIM3->CCR1 = i;
       snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR1);
       HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-      HAL_Delay(20);
-    }
-
-    for (size_t i = 100; i > 0; i--)
-    {
-      TIM3->CCR1 = i;
-      snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR2);
-      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-      HAL_Delay(20);
+      HAL_Delay(200);
     }
     
     /* USER CODE BEGIN 3 */
