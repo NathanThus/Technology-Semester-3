@@ -6,11 +6,11 @@
 
 // NODES
 #define MINIMUM_NUMBER_OF_NODES 1
-#define MAXIMUM_NUMBER_OF_NODES 10^5
+#define MAXIMUM_NUMBER_OF_NODES 1000000
 
 // CONNECTIONS
 #define MINIMUM_NUMBER_OF_CONNECTIONS 1
-#define MAXIMUM_NUMBER_OF_CONNECTIONS 10^4
+#define MAXIMUM_NUMBER_OF_CONNECTIONS 10000
 
 int TerminalIO::GetNumberOfTestCases(FILE* stream)
 {
@@ -65,12 +65,14 @@ int GetTreeStructure(FILE* stream, int* source, int* destination)
         return -1;
     }
 
-    fscanf(stream, "%d %d", &source, &destination);
+    fscanf(stream, "%d %d", source, destination);
 
     // Perform some checks here, need to verify exactly what is meant in the PDF.
     // For now, just return the values.
 
-    return -1;
+    
+
+    return 0;
 }
 
 void TerminalIO::PrintResult(FILE* stream, int *result, int numberOfTestCases)
@@ -80,7 +82,7 @@ void TerminalIO::PrintResult(FILE* stream, int *result, int numberOfTestCases)
         return;
     }
 
-    for (size_t i = 0; i < numberOfTestCases; i++)
+    for (int i = 0; i < numberOfTestCases; i++)
     {
         fprintf(stream,"%d\n", result[i]);
     }

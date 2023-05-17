@@ -12,13 +12,13 @@ HEADERS=$(wildcard Src/*.hpp)
 # Compile flags
 CFLAGS=-Wall -Werror -Wextra -pedantic -ggdb -O0 -std=c++17
 
-$(PRODUCT): $(SOURCES) $(HEADERS) Makefile
-    @$(CC) $(CFLAGS) $(SOURCES) -o $@
+$(PRODUCT): $(SOURCES) $(HEADERS)
+	@$(CC) $(CFLAGS) $(SOURCES) -o $(PRODUCT)
 
 # Cleans EXE (windows only)
-clean:
-    -del $(PRODUCT).exe
+# clean:
+#     -del $(PRODUCT).exe
 
 # Cleans EXE (linux only)
-# clean:
-#     @rm -rf $(PRODUCT)
+clean:
+	@rm -rf $(PRODUCT)

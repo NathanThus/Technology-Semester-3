@@ -13,6 +13,13 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
+    if(argv == nullptr)
+    {
+        return -1;
+    }
+
     // Arg = 0...
     // Arg = 1...
+
+    return 0;
 }
