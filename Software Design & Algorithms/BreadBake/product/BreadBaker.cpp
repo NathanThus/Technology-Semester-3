@@ -224,6 +224,16 @@ void BreadBaker::HandleState_S_Resting(Events ev)
 
 void BreadBaker::HandleState_S_Kneading(Events ev)
 {
+    if(selectedProgram.kneading == 0)
+    {
+        currentState = S_BAKING;
+        display.SetCurrentTask(Tasks::BAKING);
+        if(selectedProgram.baking > 0)
+        {
+            oven.StartBake(bakeTime);
+        }
+    }
+
     if (MotorSwitches == 0)
     {
         if (selectedProgram.addExtras)
@@ -258,9 +268,9 @@ void BreadBaker::HandleState_S_Kneading(Events ev)
         currentState = S_RISING;
 
         display.SetCurrentTask(Tasks::RISING);
-        if(selectedProgram.rising > 0)
+        if(selectedProgram.baking > 0)
         {
-            oven.StartRise(selectedProgram.rising);
+            oven.StartBake(selectedProgram.baking);
         }
     }
 
