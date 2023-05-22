@@ -2,15 +2,17 @@
 #include "Program.h"
 #include "TimeConstants.h"
 
+#include <iostream>
+
 States currentState;
 Program selectedProgram;
+
 int programID = 0;
-
 int bakeTime = 0;
-
 int MotorSwitches = 0;
-
 int delayTimer = 0;
+
+bool isDelayTimer = false;
 
 BreadBaker::BreadBaker(
     IOven &oven, ITimer &timer, IKneadMotor &motor, IYeastTray &yeast,
@@ -112,7 +114,7 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
         currentState = S_STANDBY;
     }
 
-    if (MENU_BUTTON_PRESSED)
+    if (ev == MENU_BUTTON_PRESSED)
     {
         if (programID < 5)
         {
@@ -122,24 +124,24 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
         {
             programID = 1;
         }
-        selectedProgram = GetProgram(programID);
-        display.SetMenu(programID);
     }
 
     if (ev == START_BUTTON_PRESSED)
     {
-        if (oven.GetTemperature() < 50)
+        if (oven.GetTemperature() > 50)
         {
-            currentState = S_RESTING;
-            display.SetCurrentTask(Tasks::WAITING);
-            int minutes = selectedProgram.waiting + selectedProgram.kneading + selectedProgram.rising + selectedProgram.baking;
-            // Convert minutes to hours and minutes
-            int hours = minutes / 60;
-            minutes = minutes % 60;
-            display.SetTime(hours, minutes);
-            startButton.LedOff();
-            timer.Set(delayTimer);
+            return;
         }
+
+        currentState = S_RESTING;
+        display.SetCurrentTask(Tasks::WAITING);
+        int minutes = selectedProgram.resting + selectedProgram.kneading + selectedProgram.rising + selectedProgram.baking;
+        // Convert minutes to hours and minutes
+        int hours = minutes / 60;
+        minutes = minutes % 60;
+        display.SetTime(hours, minutes);
+        startButton.LedOff();
+        timer.Set(delayTimer);
     }
 
     if (programID == 5)
@@ -162,11 +164,14 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
             }
         }
     }
+
+    selectedProgram = GetProgram(programID);
+    display.SetMenu(programID);
 }
 
 void BreadBaker::HandleState_S_Baking(Events ev)
 {
-    if (ev == TIMER_TIMEOUT)
+    if (ev == OVEN_DONE)
     {
         currentState = S_DONE;
         timer.Set(5 MIN);
@@ -186,7 +191,7 @@ void BreadBaker::HandleState_S_Rising(Events ev)
         currentState = S_BAKING;
         if (selectedProgram.baking == GetProgram(5).baking)
         {
-            timer.Set(bakeTime);
+            oven.StartBake(bakeTime);
         }
         else
         {
@@ -204,6 +209,12 @@ void BreadBaker::HandleState_S_Rising(Events ev)
 
 void BreadBaker::HandleState_S_Resting(Events ev)
 {
+    if (ev == TIMER_TIMEOUT && isDelayTimer)
+    {
+        timer.Set(selectedProgram.resting);
+        isDelayTimer = false;
+    }
+
     if (ev == TIMER_TIMEOUT)
     {
         currentState = S_KNEADING;
@@ -276,6 +287,7 @@ void BreadBaker::HandleState_S_Cancel()
 
     motor.Stop();
     startButton.LedOn();
+    ResetValues();
 }
 void BreadBaker::HandleState_S_Done(Events ev)
 {
@@ -285,6 +297,7 @@ void BreadBaker::HandleState_S_Done(Events ev)
     }
     display.SetCurrentTask(Tasks::DONE);
     startButton.LedOn();
+    ResetValues();
 }
 
 void BreadBaker::HandleState_S_Standby(Events ev)
@@ -294,3 +307,12 @@ void BreadBaker::HandleState_S_Standby(Events ev)
         currentState = S_PROGRAM_SELECTION;
     }
 }
+
+void BreadBaker::ResetValues()
+{
+    programID = 1;
+    MotorSwitches = 0;
+    bakeTime = 0;
+    isDelayTimer = false;
+    delayTimer = 0;
+}  

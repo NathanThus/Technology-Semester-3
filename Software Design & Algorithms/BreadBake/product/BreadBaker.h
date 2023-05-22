@@ -55,6 +55,7 @@ private:
     void HandleState_S_Standby(Events ev);
 
     void HandleState_S_Cancel();
+    void ResetValues();
 
 };
 
