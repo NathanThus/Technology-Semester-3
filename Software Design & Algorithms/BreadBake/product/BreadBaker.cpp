@@ -144,15 +144,13 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
         timer.Set(delayTimer);
     }
 
-    if (programID == 5)
+    if (ev == TIMER_UP_BUTTON_PRESSED)
     {
-        if (ev == TIMER_UP_BUTTON_PRESSED)
+        bakeTime += 10;
+        if (bakeTime > 90)
         {
-            bakeTime += 10;
-            if (bakeTime > 90)
-            {
-                bakeTime = 90;
-            }
+            bakeTime = 90;
+        }
         }
 
         if (ev == TIMER_DOWN_BUTTON_PRESSED)
@@ -163,7 +161,6 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
                 bakeTime = 30;
             }
         }
-    }
 
     selectedProgram = GetProgram(programID);
     display.SetMenu(programID);
@@ -189,14 +186,12 @@ void BreadBaker::HandleState_S_Rising(Events ev)
     if (ev == OVEN_DONE)
     {
         currentState = S_BAKING;
-        if (selectedProgram.baking == GetProgram(5).baking)
-        {
-            oven.StartBake(bakeTime);
-        }
-        else
-        {
-            oven.StartBake(selectedProgram.baking);
-        }
+
+    if(selectedProgram.rising > 0)
+    {
+        oven.StartRise(selectedProgram.rising);
+    }
+
         display.SetCurrentTask(Tasks::BAKING);
     }
 
@@ -263,7 +258,10 @@ void BreadBaker::HandleState_S_Kneading(Events ev)
         currentState = S_RISING;
 
         display.SetCurrentTask(Tasks::RISING);
-        oven.StartRise(selectedProgram.rising);
+        if(selectedProgram.rising > 0)
+        {
+            oven.StartRise(selectedProgram.rising);
+        }
     }
 
     if (ev == MENU_BUTTON_LONG_PRESSED)

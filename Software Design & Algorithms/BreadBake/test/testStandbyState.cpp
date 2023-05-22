@@ -78,7 +78,6 @@ TEST_F(StateTest, test_BrokenEmptyTest)
 
 TEST_F(StateTest, test_Program_PlainBread)
 {
-    // Program: Plain Bread
     const int numberOfMotorTurns = 20;
     const bool extraIngredients = false;
     const bool yeastDrop = true;
@@ -131,7 +130,6 @@ TEST_F(StateTest, test_Program_PlainBread)
 
 TEST_F(StateTest, test_Program_BreadPlus)
 {
-    // Program: Bread Plus
     const int numberOfMotorTurns = 20;
     const bool extraIngredients = true;
     const bool yeastDrop = true;
@@ -164,6 +162,113 @@ TEST_F(StateTest, test_Program_BreadPlus)
     EXPECT_CALL(timer, Set(_)).Times((numberOfMotorTurns + DoneTimer + RestingTimer)); 
     EXPECT_CALL(timer, Cancel()).Times(0);
 
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Waiting Delay
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+
+    for (int i = 0; i < (numberOfMotorTurns + yeastDrop + extraIngredients); i++)
+    {
+        baker->HandleEvent(Events::TIMER_TIMEOUT);
+    }
+
+    baker->HandleEvent(Events::OVEN_DONE); // Rising
+    baker->HandleEvent(Events::OVEN_DONE); // Baking
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done -> IDLE
+
+    EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
+}
+
+TEST_F(StateTest, test_Program_Rapid)
+{
+    const int numberOfMotorTurns = 15;
+    const bool extraIngredients = false;
+    const bool yeastDrop = true;
+    const int DoneTimer = 1;
+    const int RestingTimer = 1;
+
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(6);
+    EXPECT_CALL(display, SetMenu(_)).Times(3);
+    EXPECT_CALL(display, SetTime(_, _)).Times(1);
+    EXPECT_CALL(display, DisplayOff()).Times(0);
+
+    EXPECT_CALL(extras, Drop(_)).Times(0);
+    EXPECT_CALL(extras, Cancel()).Times(0);
+    EXPECT_CALL(yeast, Drop(_)).Times(1);
+    EXPECT_CALL(yeast, Cancel()).Times(0);
+
+    EXPECT_CALL(motor, TurnLeft()).Times(7);
+    EXPECT_CALL(motor, TurnRight()).Times(8);
+    EXPECT_CALL(motor, Stop()).Times(15);
+
+    EXPECT_CALL(oven, StartRise(_)).Times(1);
+    EXPECT_CALL(oven, StartBake(_)).Times(1);
+    EXPECT_CALL(oven, IsOn()).Times(0);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
+    EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
+
+    EXPECT_CALL(startButton, LedOn()).Times(1);
+    EXPECT_CALL(startButton, LedOff()).Times(1);
+
+    EXPECT_CALL(timer, Set(_)).Times((numberOfMotorTurns + DoneTimer + RestingTimer)); 
+    EXPECT_CALL(timer, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Waiting Delay
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+
+    for (int i = 0; i < (numberOfMotorTurns + yeastDrop + extraIngredients); i++)
+    {
+        baker->HandleEvent(Events::TIMER_TIMEOUT);
+    }
+
+    baker->HandleEvent(Events::OVEN_DONE); // Rising
+    baker->HandleEvent(Events::OVEN_DONE); // Baking
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done -> IDLE
+
+    EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
+}
+
+TEST_F(StateTest, test_Program_Dough)
+{
+    const int numberOfMotorTurns = 20;
+    const bool extraIngredients = false;
+    const bool yeastDrop = true;
+    const int DoneTimer = 1;
+    const int RestingTimer = 1;
+
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(6);
+    EXPECT_CALL(display, SetMenu(_)).Times(4);
+    EXPECT_CALL(display, SetTime(_, _)).Times(1);
+    EXPECT_CALL(display, DisplayOff()).Times(0);
+
+    EXPECT_CALL(extras, Drop(_)).Times(0);
+    EXPECT_CALL(extras, Cancel()).Times(0);
+    EXPECT_CALL(yeast, Drop(_)).Times(1);
+    EXPECT_CALL(yeast, Cancel()).Times(0);
+
+    EXPECT_CALL(motor, TurnLeft()).Times(numberOfMotorTurns / 2);
+    EXPECT_CALL(motor, TurnRight()).Times(numberOfMotorTurns / 2);
+    EXPECT_CALL(motor, Stop()).Times(numberOfMotorTurns);
+
+    EXPECT_CALL(oven, StartRise(_)).Times(1);
+    EXPECT_CALL(oven, StartBake(_)).Times(0);
+    EXPECT_CALL(oven, IsOn()).Times(0);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
+    EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
+
+    EXPECT_CALL(startButton, LedOn()).Times(1);
+    EXPECT_CALL(startButton, LedOff()).Times(1);
+
+    EXPECT_CALL(timer, Set(_)).Times((numberOfMotorTurns + DoneTimer + RestingTimer)); 
+    EXPECT_CALL(timer, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
     baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
     baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
     baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
