@@ -45,6 +45,18 @@ private:
     Log& log;
 
     void HandleEvent_Processing(Events ev);
+
+    void HandleState_S_ProgramSelection(Events ev);
+    void HandleState_S_Baking(Events ev);
+    void HandleState_S_Kneading(Events ev);
+    void HandleState_S_Rising(Events ev);
+    void HandleState_S_Resting(Events ev);
+    void HandleState_S_Done(Events ev);
+    void HandleState_S_Standby(Events ev);
+
+    void HandleState_S_Cancel();
+    void ResetValues();
+
 };
 
 #endif

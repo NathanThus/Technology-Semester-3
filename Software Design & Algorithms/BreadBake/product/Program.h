@@ -3,7 +3,7 @@
 
 struct Program
 {
-    int waiting;
+    int resting;
     int kneading;
     int rising;
     int baking;
@@ -35,8 +35,9 @@ Program GetProgram(int id)
             return Dough;
         case 5:
             return Bake;
+        default:
+        return PlainBread;
     }
-    return PlainBread;
 }
 
 #endif
