@@ -59,7 +59,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-  ADC_HandleTypeDef hadc1;
+
 /* USER CODE END 0 */
 
 /**
@@ -78,6 +78,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -107,17 +108,13 @@ int main(void)
   char msgBuf[MSGBUFSIZE];
   snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
-  
   while (1)
   {
     /* USER CODE END WHILE */
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-    int adcValue = 0;
-    adcValue = HAL_ADC_GetValue(&hadc1);
-
-    snprintf(msgBuf, MSGBUFSIZE, "%d \n", adcValue);
+    snprintf(msgBuf, MSGBUFSIZE, "%s", "In loop!\r\n");
     HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+    GPIOA->ODR ^= (1 << 5); // Toggle GPIO pin PA5 (onboard green LED).
+    HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
