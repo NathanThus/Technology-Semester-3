@@ -27,7 +27,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "timer.hpp"
+#include "Pin.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,22 +46,26 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+Timer timer = Timer(TIM3);
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
-
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
+
+// extern "C" int TIM2_IRQHandler(void)
+// {
+//   timer.ResetInterrupt();
+//   HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//   return 0;
+// }
 
 /**
   * @brief  The application entry point.
@@ -69,7 +74,6 @@ void MX_FREERTOS_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -93,24 +97,44 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-
   /* USER CODE END 2 */
 
   /* Init scheduler */
   // ES Course Comments: Uncomment the three lines below to enable FreeRTOS.
-  // osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
-  // MX_FREERTOS_Init();
-  // osKernelStart(); /* Start scheduler */
+  //osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
+  //MX_FREERTOS_Init();
+  //osKernelStart(); /* Start scheduler */
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  const int MSGBUFSIZE = 80;
+  char msgBuf[MSGBUFSIZE];
+  snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
+  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+
+  BasicTimerPackage timerPackage = {7200, 200, TIMER3};
+  PWMOutputPackage outputPackage = {timerPackage, 1, CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, 1280};
+  timer.EnableAsPWMOutput(outputPackage);
+
+  GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+  GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
 
   while (1)
   {
+    
+    /* USER CODE END WHILE */
+    for (size_t i = 0; i < 20; i++)
+    {
+      TIM3->CCR1 = i;
+      snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR1);
+      HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+      HAL_Delay(200);
+    }
+    
     /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
+  /* USER COD END 3 */
 }
 
 /**
