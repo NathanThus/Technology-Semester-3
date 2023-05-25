@@ -1,32 +1,31 @@
-#include <stdio.h>
+#ifndef TERMINALIO_HPP
+#define TERMINALIO_HPP
+
+#include <string>
+#include <cstring>
+
+enum MENU_CHOICE
+{
+    TREE,
+    RECURSION,
+    INVALID
+};
 
 class TerminalIO
 {
-private:
-    /* data */
-public:
-    TerminalIO();
-    ~TerminalIO();
+    private:
+        /* data */
+    public:
+        TerminalIO() = default;
+        ~TerminalIO() = default;
 
-    // If these are called in this order, you should read the file properly!
-    
-    /// @brief  Get the number of test cases from the file stream
-    /// @param stream The file stream to read from
-    /// @return Returns the number of test cases
-    int GetNumberOfTestCases(FILE* stream);
-    /// @brief Get the number of nodes from the file stream
-    /// @param stream The file stream to read from
-    /// @return Returns the number of nodes
-    int GetNumberOfNodes(FILE* stream);
 
-    /// @brief Get the number of connections from the file stream
-    /// @param stream The file stream to read from
-    /// @return Returns the number of connections
-    int GetNumberOfConnections(FILE* stream);
-
-    /// @brief Prints the result to the file stream
-    /// @param stream The file stream to write to
-    /// @param result The result (array of integers)
-    /// @param numberOfTestCases The number of test cases
-    void PrintResult(FILE* stream, int *result, int numberOfTestCases);
+    int GetNumberOfTestCases(int* numberOfTestCases);
+    int GetTestParameters( int* goal, int* connections);
+    int GetConnection(int* source, int* destination, int goal);
+    void PrintResult(int result);
+    void PrintText(std::string error);
+    MENU_CHOICE GetMenuChoice(const char* menuChoice);
 };
+
+#endif // TERMINALIO_HPP

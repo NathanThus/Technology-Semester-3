@@ -1,5 +1,12 @@
 #include "TerminalIO.hpp"
 
+#include <iostream>
+
+// NAMESPACE
+using std::cin;
+using std::cout;
+using std::endl;
+
 // TEST CASES
 #define MINIMUM_NUMBER_OF_TEST_CASES 1
 #define MAXIMUM_NUMBER_OF_TEST_CASES 10
@@ -12,78 +19,95 @@
 #define MINIMUM_NUMBER_OF_CONNECTIONS 1
 #define MAXIMUM_NUMBER_OF_CONNECTIONS 10000
 
-int TerminalIO::GetNumberOfTestCases(FILE* stream)
+
+int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
 {
-    if(stream == nullptr)
+    if( numberOfTestCases == nullptr)
     {
         return -1;
     }
 
-    int numberOfTestCases = 0;
-    fscanf(stream,"%d", &numberOfTestCases);
-    if(numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES && numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
+    cin >> *numberOfTestCases;
+
+    if(*numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES || *numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
     {
-       return -1; 
+        return -1;
     }
-    return numberOfTestCases;
+
+    return 1;
 }
 
-int TerminalIO::GetNumberOfNodes(FILE* stream)
+int TerminalIO::GetTestParameters(int* goal, int* connections)
 {
-    if(stream == nullptr)
+    if(goal == nullptr || connections == nullptr)
     {
         return -1;
     }
 
-    int numberOfNodes = 0;
-    fscanf(stream,"%d", &numberOfNodes);
+    cin >> *goal;
+    cin >> *connections;
 
-    if(numberOfNodes < MINIMUM_NUMBER_OF_NODES && numberOfNodes > MAXIMUM_NUMBER_OF_NODES)
+    if(*goal < MINIMUM_NUMBER_OF_NODES || *goal > MAXIMUM_NUMBER_OF_NODES)
     {
         return -1;
     }
 
-    return numberOfNodes;
+    if(*connections < MINIMUM_NUMBER_OF_CONNECTIONS || *connections > MAXIMUM_NUMBER_OF_CONNECTIONS)
+    {
+        return -1;
+    }
+
+    return 1;
 }
 
-int TerminalIO::GetNumberOfConnections(FILE* stream)
+int TerminalIO::GetConnection(int* source, int* destination, int goal)
 {
-    if(stream == nullptr)
+    if(source == nullptr || destination == nullptr)
     {
         return -1;
     }
 
-    int numberOfConnections = 0;
-    fscanf(stream,"%d", &numberOfConnections);
-    return numberOfConnections;
-}
+    cin >> *source;
+    cin >> *destination;
 
-int GetTreeStructure(FILE* stream, int* source, int* destination)
-{
-    if(stream == nullptr)
+    if(*source > goal || *source < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
         return -1;
     }
 
-    fscanf(stream, "%d %d", source, destination);
-
-    // Perform some checks here, need to verify exactly what is meant in the PDF.
-    // For now, just return the values.
-
-    
+    if(*destination > goal || *destination < MINIMUM_NUMBER_OF_CONNECTIONS)
+    {
+        return -1;
+    }
 
     return 0;
 }
 
-void TerminalIO::PrintResult(FILE* stream, int *result, int numberOfTestCases)
+void TerminalIO::PrintResult(int result)
 {
-    if (result == nullptr)
+    cout << result << endl;
+}
+
+void TerminalIO::PrintText(std::string error)
+{
+    cout << error << endl;
+}
+
+MENU_CHOICE TerminalIO::GetMenuChoice(const char *menuChoice)
+{
+    if(menuChoice == nullptr)
     {
-        return;
+        return MENU_CHOICE::INVALID;
     }
 
-    for (int i = 0; i < numberOfTestCases; i++)
+    if(strcmp(menuChoice, "TREE") == 0)
     {
-        fprintf(stream,"%d\n", result[i]);
+        return MENU_CHOICE::TREE;
     }
+    if(strcmp(menuChoice, "RECURSION") == 0)
+    {
+        return MENU_CHOICE::RECURSION;
+    }
+
+    return MENU_CHOICE::INVALID;
 }
