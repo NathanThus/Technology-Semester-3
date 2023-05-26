@@ -13,11 +13,11 @@ struct Program
 
 //The programs
 
-Program PlainBread = { 60, 20, 160, 50, true, false };
-Program BreadPlus = { 60, 20, 160, 50, true, true };
-Program Rapid = { 0, 15, 60, 40, true, false};
-Program Dough = { 40, 20, 80, 0, true, false};
-Program Bake = {0,0,0, 69, false, false};
+const Program PlainBread = { 60, 20, 160, 50, true, false };
+const Program BreadPlus = { 60, 20, 160, 50, true, true };
+const Program Rapid = { 0, 15, 60, 40, true, false};
+const Program Dough = { 40, 20, 80, 0, true, false};
+const Program Bake = {0,0,0, 69, false, false};
 
 
 //Get the program based on the ID. See the PDF for the ID's
