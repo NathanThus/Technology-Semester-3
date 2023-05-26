@@ -35,46 +35,57 @@ int cursorY = 0;
 
 // GENERAL
 
-#define TITLE_TEMPERATURE "T: "
-#define TITLE_HUMIDITY "H: "
+#define TITLE_TEMPERATURE "C1: "
+#define TITLE_HUMIDITY "C2: "
 
 // M2M COMMUNICATION
-#define TOKEN 69
+#define TOKEN 0
+#define TOKEN_INDICATOR 'T'
+#define DATA_INDICATOR 'D'
 
 // REGISTER
 bool hasToken = true;
-int sensorData = 0; // Is only used for outbound communication
-int otherSensorData = 0; // Is only used for inbound communication
+byte sensorData = 2; // Is only used for outbound communication
+byte otherSensorData = 0; // Is only used for inbound communication
 
 // DHT11
 DHT dht11(A0, DHT11);
 
 int messageCounter = 0;
+char index = ' ';
 
 void onRecieve(int howMany)
 {
   int inbound = 0;
 
-  while(Wire.available() > 0)
-  {
-    inbound = Wire.read();
-  }
-
   if(messageCounter == 0)
   {
-    otherSensorData = inbound;
+    index = (char)Wire.read();
     messageCounter++;
   }
-  if(messageCounter == 1 && inbound == TOKEN)
+  else
   {
-    hasToken = true;
+    if(index == TOKEN_INDICATOR)
+    {
+      inbound = Wire.read();
+      if(inbound == TOKEN)
+      {
+        hasToken = true;
+      }
+    }
+    else if(index == DATA_INDICATOR)
+    {
+      inbound = Wire.read();
+      otherSensorData = inbound;
+    }
+    index = ' ';
     messageCounter = 0;
   }
 }
 
 void setup()
 {
-  dht11.begin();
+  // dht11.begin();
   Wire.onReceive(onRecieve);
   Wire.begin(MY_ADDRESS);
 
@@ -89,10 +100,20 @@ void setup()
 void PrintLine(String title, int data)
 {
   oled.print(title);
-  oled.print(data);
+  String outputData;
+  if(data < 100)
+  {
+    outputData = "0";
+    outputData += data;
+  }
+  else
+  {
+    outputData = String(data);
+  }
+  oled.print(outputData);
   oled.display();
   cursorY += 16;
-  oled.setCursor(0, cursorY);
+  oled.setCursor(0,cursorY);
 }
 
 void ResetCursor()
@@ -102,9 +123,16 @@ void ResetCursor()
 
 void loop()
 {
+  digitalWrite(13, hasToken);
   if(hasToken)
   {
     hasToken = false;
+
+    sensorData += 2;
+
+    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
+    Wire.write(DATA_INDICATOR);
+    Wire.endTransmission();
 
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(sensorData);
@@ -115,8 +143,13 @@ void loop()
     ResetCursor();
 
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
+    Wire.write(TOKEN_INDICATOR);
+    Wire.endTransmission();
+
+    Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(TOKEN);
     Wire.endTransmission();
+
   }
-  sensorData = GATHER_DATA;
+  // sensorData = GATHER_DATA;
 }
