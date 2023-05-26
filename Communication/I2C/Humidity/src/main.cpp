@@ -23,20 +23,18 @@ int cursorY = 0;
 #define MY_ADDRESS HUMIDITY_ADDRESS
 #define OTHER_DEVICE_ADDRESS TEMPERATURE_ADDRESS
 #define CURSOR_Y 16
-#define GATHER_DATA (int)dht11.readHumidity()
 #endif
 
 #ifdef __TEMPERATURE__
 #define MY_ADDRESS TEMPERATURE_ADDRESS
 #define OTHER_DEVICE_ADDRESS HUMIDITY_ADDRESS
 #define CURSOR_Y 0
-#define GATHER_DATA (int)dht11.readTemperature()
 #endif
 
 // GENERAL
 
-#define TITLE_TEMPERATURE "C1: "
-#define TITLE_HUMIDITY "C2: "
+#define TITLE_COUNTER_ONE "C1: "
+#define TITLE_COUNTER_TWO "C2: "
 
 // M2M COMMUNICATION
 #define TOKEN 0
@@ -47,9 +45,6 @@ int cursorY = 0;
 bool hasToken = false;
 byte sensorData = 1; // Is only used for outbound communication
 byte otherSensorData = 0; // Is only used for inbound communication
-
-// DHT11
-DHT dht11(A0, DHT11);
 
 int messageCounter = 0;
 char index = ' ';
@@ -85,40 +80,28 @@ void onRecieve(int howMany)
 
 void setup()
 {
-  // dht11.begin();
   Wire.onReceive(onRecieve);
   Wire.begin(MY_ADDRESS);
 
+  delay(1000);
   oled.begin();
-  oled.setFontType(1);
-  oled.clear(ALL);
+  oled.setFontType(0);
+  oled.clear(CMD_CLEAR);
   oled.display();
-  oled.clear(PAGE);
-  Serial.begin(9600);
 }
 
-void PrintLine(String title, int data)
+void PrintData(int counterOneData, int counterTwoData)
 {
-  oled.print(title);
-  String outputData;
-  if(data < 100)
-  {
-    outputData = "0";
-    outputData += data;
-  }
-  else
-  {
-    outputData = String(data);
-  }
-  oled.print(outputData);
-  oled.display();
-  cursorY += 16;
-  oled.setCursor(0,cursorY);
-}
+  oled.clear(CMD_CLEAR);
 
-void ResetCursor()
-{
-  oled.setCursor(0, 0);
+  oled.print(TITLE_COUNTER_ONE);
+  oled.println(counterOneData);
+
+  oled.print(TITLE_COUNTER_TWO);
+  oled.println(counterTwoData);
+  
+  oled.display();
+  oled.setCursor(0,0);
 }
 
 void loop()
@@ -128,7 +111,7 @@ void loop()
   {
     hasToken = false;
 
-    sensorData += 2;
+    sensorData += 5;
 
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(DATA_INDICATOR);
@@ -138,9 +121,7 @@ void loop()
     Wire.write(sensorData);
     Wire.endTransmission();
 
-    PrintLine(TITLE_TEMPERATURE, otherSensorData);
-    PrintLine(TITLE_HUMIDITY, sensorData);
-    ResetCursor();
+    PrintData(sensorData, otherSensorData);
 
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(TOKEN_INDICATOR);
@@ -149,7 +130,5 @@ void loop()
     Wire.beginTransmission(OTHER_DEVICE_ADDRESS);
     Wire.write(TOKEN);
     Wire.endTransmission();
-
   }
-  // sensorData = GATHER_DATA;
 }
