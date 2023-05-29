@@ -1,6 +1,7 @@
 #include "TerminalIO.hpp"
 
 #include <iostream>
+#include <cmath>
 
 // NAMESPACE
 using std::cin;
@@ -13,11 +14,11 @@ using std::endl;
 
 // NODES
 #define MINIMUM_NUMBER_OF_NODES 1
-#define MAXIMUM_NUMBER_OF_NODES 1000000
+#define MAXIMUM_NUMBER_OF_NODES pow(10, 4)
 
 // CONNECTIONS
 #define MINIMUM_NUMBER_OF_CONNECTIONS 1
-#define MAXIMUM_NUMBER_OF_CONNECTIONS 10000
+#define MAXIMUM_NUMBER_OF_CONNECTIONS pow(10, 5)
 
 
 int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
@@ -28,6 +29,7 @@ int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
     }
 
     cin >> *numberOfTestCases;
+    cout << "T: " << *numberOfTestCases << endl;
 
     if(*numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES || *numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
     {
@@ -45,15 +47,19 @@ int TerminalIO::GetTestParameters(int* goal, int* connections)
     }
 
     cin >> *goal;
+    cout << "N (goal / max): " << *goal << endl;
     cin >> *connections;
+    cout << "M (# of nodes): " << *connections << endl;
 
     if(*goal < MINIMUM_NUMBER_OF_NODES || *goal > MAXIMUM_NUMBER_OF_NODES)
     {
+        PrintText("Invalid number of nodes");
         return -1;
     }
 
     if(*connections < MINIMUM_NUMBER_OF_CONNECTIONS || *connections > MAXIMUM_NUMBER_OF_CONNECTIONS)
     {
+        
         return -1;
     }
 
@@ -72,11 +78,14 @@ int TerminalIO::GetConnection(int* source, int* destination, int goal)
 
     if(*source > goal || *source < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
+        cout << "Source: " << *source << endl;
+        PrintText("Invalid source");
         return -1;
     }
 
     if(*destination > goal || *destination < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
+        PrintText("Invalid destination");
         return -1;
     }
 
