@@ -89,6 +89,12 @@ int TerminalIO::GetConnection(int* source, int* destination, int goal)
         return -1;
     }
 
+    if(*source == *destination)
+    {
+        PrintText("Source and destination cannot be the same");
+        return -1;
+    }
+
     return 0;
 }
 
