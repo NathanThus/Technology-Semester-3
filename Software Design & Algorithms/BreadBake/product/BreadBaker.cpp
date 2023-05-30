@@ -8,7 +8,7 @@ States currentState;
 Program selectedProgram;
 
 int programID = 0;
-int bakeTime = 0;
+int bakeTime = 30;
 int MotorSwitches = 0;
 int delayTimer = 0;
 
@@ -52,16 +52,16 @@ void BreadBaker::HandleEvent(Events ev)
 
     switch (currentState)
     {
-    case S_STANDBY:
-    {
-        HandleState_S_Standby(ev);
-        break;
-    }
-    case S_PROGRAM_SELECTION:
-    {
-        HandleState_S_ProgramSelection(ev);
-        break;
-    }
+        case S_STANDBY:
+        {
+            HandleState_S_Standby(ev);
+            break;
+        }
+        case S_PROGRAM_SELECTION:
+        {
+            HandleState_S_ProgramSelection(ev);
+            break;
+        }
 
     default:
         break;
@@ -146,21 +146,21 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
 
     if (ev == TIMER_UP_BUTTON_PRESSED)
     {
-        bakeTime += 10;
+        bakeTime = bakeTime + 10;
         if (bakeTime > 90)
         {
             bakeTime = 90;
         }
-        }
+    }
 
-        if (ev == TIMER_DOWN_BUTTON_PRESSED)
+    if (ev == TIMER_DOWN_BUTTON_PRESSED)
+    {
+        bakeTime = bakeTime - 10;
+        if (bakeTime < 30)
         {
-            bakeTime -= 10;
-            if (bakeTime < 30)
-            {
-                bakeTime = 30;
-            }
+            bakeTime = 30;
         }
+    }
 
     selectedProgram = GetProgram(programID);
     display.SetMenu(programID);
@@ -234,6 +234,11 @@ void BreadBaker::HandleState_S_Kneading(Events ev)
         }
     }
 
+    if (ev == MENU_BUTTON_LONG_PRESSED)
+    {
+        currentState = S_CANCEL;
+    }
+
     if (MotorSwitches == 0)
     {
         if (selectedProgram.addExtras)
@@ -274,10 +279,6 @@ void BreadBaker::HandleState_S_Kneading(Events ev)
         }
     }
 
-    if (ev == MENU_BUTTON_LONG_PRESSED)
-    {
-        currentState = S_CANCEL;
-    }
 }
 
 void BreadBaker::HandleState_S_Cancel()
@@ -320,7 +321,7 @@ void BreadBaker::ResetValues()
 {
     programID = 1;
     MotorSwitches = 0;
-    bakeTime = 0;
+    bakeTime = 30;
     isDelayTimer = false;
     delayTimer = 0;
 }  

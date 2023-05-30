@@ -287,7 +287,7 @@ TEST_F(StateTest, test_Program_Dough)
     EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
 }
 
-TEST_F(StateTest, test_Program_Baking)
+TEST_F(StateTest, test_Program_Baking_UpTimer)
 {
     EXPECT_CALL(display, SetCurrentTask(_)).Times(5);
     EXPECT_CALL(display, SetMenu(_)).Times(5 + 3);
@@ -304,7 +304,7 @@ TEST_F(StateTest, test_Program_Baking)
     EXPECT_CALL(motor, Stop()).Times(0);
 
     EXPECT_CALL(oven, StartRise(_)).Times(0);
-    EXPECT_CALL(oven, StartBake(_)).Times(1);
+    EXPECT_CALL(oven, StartBake(60)).Times(1);
     EXPECT_CALL(oven, IsOn()).Times(0);
     EXPECT_CALL(oven, GetTemperature()).Times(1);
     EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
@@ -331,6 +331,139 @@ TEST_F(StateTest, test_Program_Baking)
     baker->HandleEvent(Events::OVEN_DONE);
     baker->HandleEvent(Events::OVEN_DONE); // Baking, needs an event to trigger the update
     baker->HandleEvent(Events::TIMER_TIMEOUT); // Done -> IDLE
+
+    EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
+}
+
+TEST_F(StateTest, test_Program_Baking_UpAndDownTimer)
+{
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(5);
+    EXPECT_CALL(display, SetMenu(_)).Times(5 + 3);
+    EXPECT_CALL(display, SetTime(_, _)).Times(1);
+    EXPECT_CALL(display, DisplayOff()).Times(0);
+
+    EXPECT_CALL(extras, Drop(_)).Times(0);
+    EXPECT_CALL(extras, Cancel()).Times(0);
+    EXPECT_CALL(yeast, Drop(_)).Times(0);
+    EXPECT_CALL(yeast, Cancel()).Times(0);
+
+    EXPECT_CALL(motor, TurnLeft()).Times(0);
+    EXPECT_CALL(motor, TurnRight()).Times(0);
+    EXPECT_CALL(motor, Stop()).Times(0);
+
+    EXPECT_CALL(oven, StartRise(_)).Times(0);
+    EXPECT_CALL(oven, StartBake(40)).Times(1);
+    EXPECT_CALL(oven, IsOn()).Times(0);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
+    EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
+
+    EXPECT_CALL(startButton, LedOn()).Times(1);
+    EXPECT_CALL(startButton, LedOff()).Times(1);
+
+    EXPECT_CALL(timer, Set(_)).Times(2);  // Once for delay, another for Done
+    EXPECT_CALL(timer, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+
+    baker->HandleEvent(Events::TIMER_UP_BUTTON_PRESSED);
+    baker->HandleEvent(Events::TIMER_UP_BUTTON_PRESSED);
+    baker->HandleEvent(Events::TIMER_DOWN_BUTTON_PRESSED);
+
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+    
+    baker->HandleEvent(Events::OVEN_DONE);
+    baker->HandleEvent(Events::OVEN_DONE); // Baking, needs an event to trigger the update
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done -> IDLE
+
+    EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
+}
+
+TEST_F(StateTest, test_Program_Baking_DownTimer)
+{
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(5);
+    EXPECT_CALL(display, SetMenu(_)).Times(6);
+    EXPECT_CALL(display, SetTime(_, _)).Times(1);
+    EXPECT_CALL(display, DisplayOff()).Times(0);
+
+    EXPECT_CALL(extras, Drop(_)).Times(0);
+    EXPECT_CALL(extras, Cancel()).Times(0);
+    EXPECT_CALL(yeast, Drop(_)).Times(0);
+    EXPECT_CALL(yeast, Cancel()).Times(0);
+
+    EXPECT_CALL(motor, TurnLeft()).Times(0);
+    EXPECT_CALL(motor, TurnRight()).Times(0);
+    EXPECT_CALL(motor, Stop()).Times(0);
+
+    EXPECT_CALL(oven, StartRise(_)).Times(0);
+    EXPECT_CALL(oven, StartBake(30)).Times(1);
+    EXPECT_CALL(oven, IsOn()).Times(0);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
+    EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
+
+    EXPECT_CALL(startButton, LedOn()).Times(1);
+    EXPECT_CALL(startButton, LedOff()).Times(1);
+
+    EXPECT_CALL(timer, Set(_)).Times(2);  // Once for delay, another for Done
+    EXPECT_CALL(timer, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+
+    baker->HandleEvent(Events::TIMER_DOWN_BUTTON_PRESSED);
+
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+    
+    baker->HandleEvent(Events::OVEN_DONE);
+    baker->HandleEvent(Events::OVEN_DONE); // Baking, needs an event to trigger the update
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Done -> IDLE
+
+    EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
+}
+
+TEST_F(StateTest, test_Program_Cancel)
+{
+    EXPECT_CALL(display, SetCurrentTask(_)).Times(3);
+    EXPECT_CALL(display, SetMenu(_)).Times(2);
+    EXPECT_CALL(display, SetTime(_, _)).Times(1);
+
+    EXPECT_CALL(extras, Drop(_)).Times(1);
+    EXPECT_CALL(extras, Cancel()).Times(1);
+    EXPECT_CALL(yeast, Drop(_)).Times(1);
+    EXPECT_CALL(yeast, Cancel()).Times(1);
+
+    EXPECT_CALL(motor, TurnLeft()).Times(0); // Exit here
+    EXPECT_CALL(motor, TurnRight()).Times(1);
+    EXPECT_CALL(motor, Stop()).Times(2);
+
+    EXPECT_CALL(oven, StartRise(_)).Times(0);
+    EXPECT_CALL(oven, StartBake(_)).Times(0);
+    EXPECT_CALL(oven, IsOn()).Times(1);
+    EXPECT_CALL(oven, GetTemperature()).Times(1);
+    EXPECT_CALL(oven, Cancel()).Times(0); // Is used to switch off manually.
+
+    EXPECT_CALL(startButton, LedOn()).Times(1);
+    EXPECT_CALL(startButton, LedOff()).Times(1);
+
+    EXPECT_CALL(timer, Set(_)).Times(2);
+    EXPECT_CALL(timer, Cancel()).Times(0);
+
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::MENU_BUTTON_PRESSED); // Select Program
+    baker->HandleEvent(Events::START_BUTTON_PRESSED); // Start Program
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Waiting Delay
+    baker->HandleEvent(Events::TIMER_TIMEOUT); // Resting Delay
+
+    baker->HandleEvent(Events::MENU_BUTTON_LONG_PRESSED); // Cancel
+    baker->HandleEvent(Events::MENU_BUTTON_LONG_PRESSED); // Cancel
 
     EXPECT_EQ(1, 1); // a Google test project must have at least one EXPECT_... or ASSERT_..., else it won't compile
 }
