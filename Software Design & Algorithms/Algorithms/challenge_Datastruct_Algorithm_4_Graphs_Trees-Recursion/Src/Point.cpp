@@ -1,9 +1,5 @@
 #include "Point.hpp"
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 Point::Point(int id)
     : ID(id)
 {
