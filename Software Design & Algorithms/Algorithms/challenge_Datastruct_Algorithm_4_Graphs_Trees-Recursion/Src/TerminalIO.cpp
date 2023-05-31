@@ -18,19 +18,15 @@ using std::endl;
 
 // CONNECTIONS
 #define MINIMUM_NUMBER_OF_CONNECTIONS 1
-#define MAXIMUM_NUMBER_OF_CONNECTIONS pow(10, 5)
+#define MAXIMUM_NUMBER_OF_CONNECTIONS_GRAPH pow(10, 5)
+#define MAXIMUM_NUMBER_OF_CONNECTIONS_TREE 20 - 1
 
 
-int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
+int TerminalIO::GetNumberOfTestCases(int& numberOfTestCases)
 {
-    if( numberOfTestCases == nullptr)
-    {
-        return -1;
-    }
+    cin >> numberOfTestCases;
 
-    cin >> *numberOfTestCases;
-
-    if(*numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES || *numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
+    if(numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES || numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
     {
         return -1;
     }
@@ -38,22 +34,30 @@ int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
     return 1;
 }
 
-int TerminalIO::GetTestParameters(int* goal, int* connections)
+int TerminalIO::GetNumberOfElements(int &numberOfElements)
 {
-    if(goal == nullptr || connections == nullptr)
+    cin >> numberOfElements;
+
+    if(numberOfElements < MINIMUM_NUMBER_OF_CONNECTIONS || numberOfElements > MAXIMUM_NUMBER_OF_CONNECTIONS_TREE)
     {
         return -1;
     }
-    cin >> *goal;
-    cin >> *connections;
 
-    if(*goal < MINIMUM_NUMBER_OF_NODES || *goal > MAXIMUM_NUMBER_OF_NODES)
+    return 1;
+}
+
+int TerminalIO::GetTestParameters_Graph(int& goal, int& connections)
+{
+    cin >> goal;
+    cin >> connections;
+
+    if(goal < MINIMUM_NUMBER_OF_NODES || goal > MAXIMUM_NUMBER_OF_NODES)
     {
         PrintText("Invalid number of nodes");
         return -1;
     }
 
-    if(*connections < MINIMUM_NUMBER_OF_CONNECTIONS || *connections > MAXIMUM_NUMBER_OF_CONNECTIONS)
+    if(connections < MINIMUM_NUMBER_OF_CONNECTIONS || connections > MAXIMUM_NUMBER_OF_CONNECTIONS_GRAPH)
     {
         
         return -1;
@@ -62,31 +66,53 @@ int TerminalIO::GetTestParameters(int* goal, int* connections)
     return 1;
 }
 
-int TerminalIO::GetConnection(int* source, int* destination, int goal)
+int TerminalIO::GetGraphConnection(int& source, int& destination, int goal)
 {
-    if(source == nullptr || destination == nullptr)
-    {
-        return -1;
-    }
+    cin >> source;
+    cin >> destination;
 
-    cin >> *source;
-    cin >> *destination;
-
-    if(*source > goal || *source < MINIMUM_NUMBER_OF_CONNECTIONS)
+    if(source > goal || source < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
-        cout << "ERROR: Source: " << *source << endl;
+        cout << "ERROR: Source: " << source << endl;
         PrintText("ERROR: Invalid source");
         return -1;
     }
-    if(*destination > goal || *destination < MINIMUM_NUMBER_OF_CONNECTIONS)
+    if(destination > goal || destination < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
         PrintText("ERROR: Invalid destination");
         return -1;
     }
 
-    if(*source == *destination)
+    if(source == destination)
     {
         PrintText("ERROR: Source and destination are the same");
+        return -1;
+    }
+
+    return 0;
+}
+
+int TerminalIO::GetTreeConnection(int &source, int &left, int &right)
+{
+    cin >> source;
+    cin >> left;
+    cin >> right;
+
+    if(source < MINIMUM_NUMBER_OF_NODES || source > MAXIMUM_NUMBER_OF_NODES)
+    {
+        PrintText("Invalid source");
+        return -1;
+    }
+
+    if(left < MINIMUM_NUMBER_OF_NODES || left > MAXIMUM_NUMBER_OF_NODES)
+    {
+        PrintText("Invalid left");
+        return -1;
+    }
+
+    if(right < MINIMUM_NUMBER_OF_NODES || right > MAXIMUM_NUMBER_OF_NODES)
+    {
+        PrintText("Invalid right");
         return -1;
     }
 
