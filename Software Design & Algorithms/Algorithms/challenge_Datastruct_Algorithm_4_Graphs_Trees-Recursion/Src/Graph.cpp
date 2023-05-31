@@ -13,37 +13,45 @@ void Graph::GenerateChildren(int count)
     }
 }
 
-void Graph::AddConnection(int sourceID, int destinationID)
+int Graph::AddConnection(int sourceID, int destinationID)
 {
+    if(sourceID == destinationID)
+    {
+        return -1;
+    }
     Points.at(sourceID).AddChild(&Points.at(destinationID));
+    Points.at(destinationID).AddChild(&Points.at(sourceID));
+    return 0;
 }
 
-int Graph::GetShortestPath(int goal)
+int Graph::Search(int goal)
 {
-    vector<int> paths;
-    int currentPath = 0;
-
-    if (Points.empty())
+    if(Points.empty())
     {
         return -1;
     }
 
-    Points.at(1).Dive(paths, currentPath, goal);
+    std::queue<Point*> queue;
+    std::set<int> visited;
 
-    if(paths.empty())
+    queue.push(&Points.at(1));
+
+    while(!queue.empty())
     {
-        return -1;
-    }
+        Point* current = queue.front();
+        queue.pop();
 
-    int shortestPath = paths.at(0);
+        visited.insert(current->GetID()); // Now we say we were here
 
-    for (size_t i = 0; i < paths.size(); i++)
-    {
-        if(paths.at(i) < shortestPath)
+        for(auto& child : current->GetConnections())
         {
-            shortestPath = paths.at(i);
+            if(!visited.count(child.first)) // If we haven't been here
+            {
+                // Distance calcs
+                child.second->SetDistance(current->GetDistance() + 1);
+                queue.push(child.second);
+            }
         }
     }
-
-    return shortestPath;
+    return Points.at(goal).GetDistance();
 }

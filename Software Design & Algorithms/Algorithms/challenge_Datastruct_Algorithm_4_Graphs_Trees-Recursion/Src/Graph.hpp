@@ -8,6 +8,7 @@ class Graph
 {
 private:
     std::unordered_map<int, Point> Points;
+    
 public:
     Graph() = default;
     Point& GetChildByID(int id) { return Points.at(id); }
@@ -19,8 +20,8 @@ public:
     // DEBUG
 
     void GenerateChildren(int count);
-    void AddConnection(int sourceID, int destinationID);
-    int GetShortestPath(int goal);
+    int AddConnection(int sourceID, int destinationID);
+    int Search(int goal);
 };
 
 #endif // GRAPH_HPP

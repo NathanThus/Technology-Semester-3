@@ -29,7 +29,6 @@ int TerminalIO::GetNumberOfTestCases(int* numberOfTestCases)
     }
 
     cin >> *numberOfTestCases;
-    cout << "T: " << *numberOfTestCases << endl;
 
     if(*numberOfTestCases < MINIMUM_NUMBER_OF_TEST_CASES || *numberOfTestCases > MAXIMUM_NUMBER_OF_TEST_CASES)
     {
@@ -45,11 +44,8 @@ int TerminalIO::GetTestParameters(int* goal, int* connections)
     {
         return -1;
     }
-
     cin >> *goal;
-    cout << "N (goal / max): " << *goal << endl;
     cin >> *connections;
-    cout << "M (# of nodes): " << *connections << endl;
 
     if(*goal < MINIMUM_NUMBER_OF_NODES || *goal > MAXIMUM_NUMBER_OF_NODES)
     {
@@ -78,20 +74,19 @@ int TerminalIO::GetConnection(int* source, int* destination, int goal)
 
     if(*source > goal || *source < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
-        cout << "Source: " << *source << endl;
-        PrintText("Invalid source");
+        cout << "ERROR: Source: " << *source << endl;
+        PrintText("ERROR: Invalid source");
         return -1;
     }
-
     if(*destination > goal || *destination < MINIMUM_NUMBER_OF_CONNECTIONS)
     {
-        PrintText("Invalid destination");
+        PrintText("ERROR: Invalid destination");
         return -1;
     }
 
     if(*source == *destination)
     {
-        PrintText("Source and destination cannot be the same");
+        PrintText("ERROR: Source and destination are the same");
         return -1;
     }
 

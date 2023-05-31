@@ -11,43 +11,25 @@ Point::Point(int id)
 
 Point::~Point()
 {
-    children.clear();
+    connections.clear();
 }
     
 
 void Point::AddChild(Point* child)
 {
-    children.try_emplace(child->GetID(), child);
+    connections.try_emplace(child->GetID(), child);
 }
 
-void Point::Dive(vector<int> &paths, int currentPath, int goal)
+void Point::SetDistance(int distance)
 {
-    if(ID == goal)
+    if(distance < this->distance || this->distance == 0)
     {
-        cout << "Found it" << endl;
-        paths.push_back(currentPath);
-        return;
+        this->distance = distance;
     }
-    else
-    {
-        if(children.empty())
-        {
-            return;
-        }
-        for (auto [ID, ptr] : children)
-        {
-            ptr->Dive(paths, currentPath + 1, goal);
-        }
-        // for(size_t i = 0; i < children.size(); i++)
-        // {
-        //     children.at(i)->Dive(paths, currentPath, goal);
-        // }
-    }
-    return;
 }
 
 Point::Point(Point &&other) noexcept
     : ID(other.ID)
-    , children(std::move(other.children))
+    , connections(std::move(other.connections))
 {
 }

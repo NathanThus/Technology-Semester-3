@@ -8,34 +8,23 @@ class Point
 {
     private:
     int ID;
-    std::unordered_map<int, Point*> children;
+    std::unordered_map<int, Point*> connections;
+    int distance = 0;
 
     public:
     Point(int id);
+    Point(const Point& other) = delete;
+    Point(Point&& other) noexcept;
     ~Point();
 
     int GetID() { return ID; }
-    int GetConnections() { return children.size(); }
+    int GetDistance() { return distance; }
+    std::unordered_map<int, Point*>& GetConnections() { return connections; }
     
-    //DEBUG
-    int ExposeConnection() { if(!children.empty()) return children.at(0)->GetID(); else return 0;}
-    Point(const Point& other) = delete;
-    Point(Point&& other) noexcept;
-
-    //DEBUG
-
-
     void AddChild(Point* child);
-
-    /// @brief Recusively dives into the tree to find the shortest path to the goal.
-    /// @param paths Vector of all paths to the goal.
-    /// @param currentPath Current path length.
-    /// @param goal The goal ID.
-    void Dive(vector<int> &paths, int currentPath, int goal);
+    void SetDistance(int distance);
 
     friend std::ostream& operator<<(std::ostream& os, const Point& point);
 };
-
-
 
 #endif // POINT_HPP

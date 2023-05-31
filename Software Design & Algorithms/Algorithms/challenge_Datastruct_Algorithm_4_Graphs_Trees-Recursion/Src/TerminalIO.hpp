@@ -26,6 +26,7 @@ class TerminalIO
     void PrintResult(int result);
     void PrintText(std::string error);
     MENU_CHOICE GetMenuChoice(const char* menuChoice);
+
 };
 
 #endif // TERMINALIO_HPP

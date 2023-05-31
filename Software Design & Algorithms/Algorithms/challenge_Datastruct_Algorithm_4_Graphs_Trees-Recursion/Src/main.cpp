@@ -39,19 +39,24 @@ int HandleGraph()
         Graph graph;
         graph.GenerateChildren(goal);
 
-        for (int i = 0; i < connections; i++)
+        for (int j = 0; j < connections; j++)
         {
-            int sourceLeafID = 0, destinationLeafID = 0;
+            int sourceID = 0, destinationID = 0;
             
-            if(terminalIO.GetConnection(&sourceLeafID, &destinationLeafID, goal) == -1)
+            if(terminalIO.GetConnection(&sourceID, &destinationID, goal) == -1)
             {
+                terminalIO.PrintText("Invalid connection");
                 return -1;
             }
 
-            graph.AddConnection(sourceLeafID, destinationLeafID);
+            if(graph.AddConnection(sourceID, destinationID) == -1)
+            {
+                terminalIO.PrintText("Duplicate connection");
+                return -1;
+            }
         }
-        
-        int result = graph.GetShortestPath(goal);
+
+        int result = graph.Search(goal);
         terminalIO.PrintResult(result);
     }
     return 0;
