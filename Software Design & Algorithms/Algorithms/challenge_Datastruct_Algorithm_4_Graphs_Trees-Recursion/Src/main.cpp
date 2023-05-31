@@ -4,6 +4,8 @@
 #include "Graph.hpp"
 #include "Point.hpp"
 
+#include "Tree.hpp"
+
 // DEBUG
 #include <iostream>
 using std::cout;
@@ -12,7 +14,7 @@ using std::endl;
 
 // My Defines
 #define REQUESTED_TEST 1
-#define TREE "TREE"
+#define GRAPH "GRAPH"
 #define RECURSION "RECURSION"
 
 TerminalIO terminalIO;
@@ -20,7 +22,7 @@ TerminalIO terminalIO;
 int HandleGraph()
 {
     int testCases = 0;
-    if(terminalIO.GetNumberOfTestCases(&testCases) == -1)
+    if(terminalIO.GetNumberOfTestCases(testCases) == -1)
     {
         terminalIO.PrintText("Invalid number of test cases");
         return -1;
@@ -31,7 +33,7 @@ int HandleGraph()
 
         int goal = 0;
         int connections = 0;
-        if(terminalIO.GetTestParameters(&goal, &connections) == -1)
+        if(terminalIO.GetTestParameters_Graph(goal, connections) == -1)
         {
             return -1;
         }
@@ -43,7 +45,7 @@ int HandleGraph()
         {
             int sourceID = 0, destinationID = 0;
             
-            if(terminalIO.GetConnection(&sourceID, &destinationID, goal) == -1)
+            if(terminalIO.GetGraphConnection(sourceID, destinationID, goal) == -1)
             {
                 terminalIO.PrintText("Invalid connection");
                 return -1;
@@ -64,8 +66,25 @@ int HandleGraph()
 
 int HandleRecursion()
 {
-    terminalIO.PrintText("Not implemented");
-    return -1; // TODO: IMPLEMENT THIS
+    int numberOfElements;
+    if( terminalIO.GetNumberOfElements(numberOfElements) == -1)
+    {
+        terminalIO.PrintText("Invalid number of elements");
+        return -1;
+    }
+
+    Tree tree;
+    tree.GenerateBranches(numberOfElements);
+    int result = -1;
+    if(tree.DeepestPath(result) == -1)
+    {
+        terminalIO.PrintText("Invalid tree");
+        return -1;
+    }
+    
+    terminalIO.PrintResult(result);
+
+    return 0;
 }
 
 int main(int argc, char const *argv[])
@@ -75,17 +94,20 @@ int main(int argc, char const *argv[])
         terminalIO.PrintText("Not enough arguments");
         return -1;
     }
-    argv = argv; // TODO: Remove this line when the code is finished.
-    return HandleGraph();
 
+    if(argv[REQUESTED_TEST] == nullptr)
+    {
+        terminalIO.PrintText("Invalid argument");
+        return -1;
+    }
 
-    //TODO: Fix. This is not working.
-    // if(strcmp(argv[REQUESTED_TEST], TREE) == 0)
-    // {
-    //     return HandleTree();
-    // }
-    // if(strcmp(argv[REQUESTED_TEST], RECURSION) == 0)
-    // {
-    //     return HandleRecursion();
-    // }
+    if(strcmp(argv[REQUESTED_TEST], GRAPH) == 0)
+    {
+        return HandleGraph();
+    }
+    
+    if(strcmp(argv[REQUESTED_TEST], RECURSION) == 0)
+    {
+        return HandleRecursion();
+    }
 }
