@@ -1,0 +1,14 @@
+@startuml State Machine Reciever
+
+State Idle
+State IngestingData
+State ProcessingData
+State SendingData
+
+[*] --> Idle
+Idle --> IngestingData : Recieve Data
+IngestingData --> ProcessingData : Data Recieved
+ProcessingData --> SendingData : Data Processed
+SendingData --> Idle : Data Sent
+
+@enduml
