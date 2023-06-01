@@ -32,7 +32,7 @@ int Tree::DeepestPath(int &result)
         return -1;
     }
 
-    Branches.at(1).Dive(paths, 0); // Remind me to ONLY use at()
+    Branches.at(1).Dive(paths, 1); // Remind me to ONLY use at()
     
     if(paths.empty())
     {
