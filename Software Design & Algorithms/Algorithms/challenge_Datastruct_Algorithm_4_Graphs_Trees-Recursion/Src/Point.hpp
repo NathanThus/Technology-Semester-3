@@ -2,6 +2,7 @@
 #define POINT_HPP
 
 #include <bits/stdc++.h>
+
 using std::vector;
 
 class Point

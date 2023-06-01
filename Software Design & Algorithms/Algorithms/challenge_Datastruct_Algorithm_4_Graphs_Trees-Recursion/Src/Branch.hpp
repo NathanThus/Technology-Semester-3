@@ -10,7 +10,9 @@ class Branch
     std::unordered_map<int, Branch*> Connections;
     public:
     Branch(int id);
-    void AddConnection(int id, Branch& branch);
+    Branch() = delete;
+
+    void AddConnection(int id, Branch* branch);
     void Dive(std::vector<int>& paths, int currentPath);
 };
 

@@ -3,14 +3,9 @@
 #include "TerminalIO.hpp"
 #include "Graph.hpp"
 #include "Point.hpp"
+#include <string.h>
 
 #include "Tree.hpp"
-
-// DEBUG
-#include <iostream>
-using std::cout;
-using std::endl;
-// /DEBUG
 
 // My Defines
 #define REQUESTED_TEST 1
@@ -74,7 +69,20 @@ int HandleRecursion()
     }
 
     Tree tree;
-    tree.GenerateBranches(numberOfElements);
+    tree.GenerateBranches();
+
+    for (int i = 0; i < numberOfElements; i++)
+    {
+        int source, left, right;
+        if(terminalIO.GetTreeConnection(source, left, right) == -1)
+        {
+            terminalIO.PrintText("Invalid connection");
+            return -1;
+        }
+
+        tree.AddConnection(source, left, right);
+    }
+
     int result = -1;
     if(tree.DeepestPath(result) == -1)
     {

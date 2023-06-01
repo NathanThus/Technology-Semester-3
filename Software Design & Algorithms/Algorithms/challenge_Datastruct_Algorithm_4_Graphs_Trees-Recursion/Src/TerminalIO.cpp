@@ -98,21 +98,9 @@ int TerminalIO::GetTreeConnection(int &source, int &left, int &right)
     cin >> left;
     cin >> right;
 
-    if(source < MINIMUM_NUMBER_OF_NODES || source > MAXIMUM_NUMBER_OF_NODES)
+    if(source <= 0 || source > MAXIMUM_NUMBER_OF_CONNECTIONS_TREE)
     {
-        PrintText("Invalid source");
-        return -1;
-    }
-
-    if(left < MINIMUM_NUMBER_OF_NODES || left > MAXIMUM_NUMBER_OF_NODES)
-    {
-        PrintText("Invalid left");
-        return -1;
-    }
-
-    if(right < MINIMUM_NUMBER_OF_NODES || right > MAXIMUM_NUMBER_OF_NODES)
-    {
-        PrintText("Invalid right");
+        PrintText("ERROR: Invalid source");
         return -1;
     }
 
