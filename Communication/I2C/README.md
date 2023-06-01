@@ -141,7 +141,7 @@ We start the communication by sending an indicator, which is either `T` or `D`. 
 
 ### Reduce device count
 
-Originally, the concept was to use three arduino's, one for the display and the others to act as counters. However, the display is it's own I2C device. After consulting with Felix, it was decided that the display arduino would be removed, and the display would be connected to the I2C line. This saves a fair bit of code, and also means that the arduino's only need to communicate among themselves. The arduino with the token can then send the data to the display, and the display will show the data. This also avoids multiple masters attempting to use the I2C line at the same time.
+Originally, the concept was to use three arduino's, one for the display and the others to act as counters. However, the display is it's own I2C device. After consulting with Felix, it was decided that the display arduino would be removed, and the remaining arduino's would take turns communicating with the display. This saves a fair bit of code, and also means that the arduino's only need to communicate among themselves. The arduino with the token can then send the data to the display, and the display will show the data. This also avoids multiple masters attempting to use the I2C line at the same time.
 
 ### Bus Control
 
