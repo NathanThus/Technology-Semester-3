@@ -1,0 +1,40 @@
+@startuml ClassDiagram
+title Class Diagram
+
+Class TerminalIO
+{
+    {method} + int GetNumberOfTestCases(FILE* stream)
+    {method} + int GetNumberOfNodes(FILE* stream)
+    {method} + int GetNumberOfConnections(FILE* stream)
+    {method} + void PrintResult(FILE* stream, int* result, int numberOfTestCases)
+}
+
+note Top of main
+This is the main function. It is the entry point of the program.
+end note
+
+class main
+{
+
+}
+
+Class NetworkAlgorithm
+{
+    
+}
+
+class Node
+{
+    {field} - int id
+    {field} - int Connections[]
+
+    {method} + Node(int id)
+    {method} + Node(int id, int* connections)
+    {method} + int GetId()
+    {method} + int* GetConnections()
+}
+
+main -> TerminalIO
+main -> NetworkAlgorithm
+NetworkAlgorithm -> Node
+@enduml
