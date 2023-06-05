@@ -26,6 +26,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "Pin.hpp"
+#include "Servo.hpp"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -51,9 +54,10 @@
 extern UART_HandleTypeDef huart2;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-    .name = "defaultTask",
+
+osThreadId_t SerialTaskHandle;
+const osThreadAttr_t SerialTask_Attributes = {
+    .name = "SerialTask",
     .attr_bits = osThreadDetached,
     .cb_mem = NULL,
     .cb_size = 0,
@@ -63,12 +67,13 @@ const osThreadAttr_t defaultTask_attributes = {
     .tz_module = 0,
     .reserved = 0};
 
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
+void StartSerialTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -80,7 +85,10 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void MX_FREERTOS_Init(void)
 {
   /* USER CODE BEGIN Init */
+  Pin OutputPin = {GPIOB, 10};
+  Pin InputPin = {GPIOB, 4};
 
+  Servo servo(InputPin, OutputPin);
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -101,7 +109,7 @@ void MX_FREERTOS_Init(void)
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  SerialTaskHandle = osThreadNew(StartSerialTask, NULL, &SerialTask_Attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -126,6 +134,19 @@ void StartDefaultTask(void *argument)
   for (;;)
   {
     osDelay(1);
+  }
+  /* USER CODE END StartDefaultTask */
+}
+
+void StartSerialTask(void *argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
+  /* Infinite loop */
+  for (;;)
+  {
+    //Read from serial
+    char rx_buffer[10];
+    HAL_UART_Receive(&huart2, (uint8_t *)rx_buffer, 1, 1000);
   }
   /* USER CODE END StartDefaultTask */
 }
