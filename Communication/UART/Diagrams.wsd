@@ -1,14 +1,98 @@
 @startuml State Machine Reciever
+Title State Machine Reciever
 
 State Idle
-State IngestingData
-State ProcessingData
-State SendingData
+Idle : Entry: WasByteValid()
+Idle : Do: WaitForStartBit()
 
-[*] --> Idle
-Idle --> IngestingData : Recieve Data
-IngestingData --> ProcessingData : Data Recieved
-ProcessingData --> SendingData : Data Processed
-SendingData --> Idle : Data Sent
+State Read_UART {
+
+    State ReadBit
+    ReadBit : Do: ReadBit()
+
+    State ByteValidation
+    ByteValidation : Do: CheckValidity()
+    ByteValidation : Exit: ReportValidity()
+
+    State AddToBuffer
+    AddToBuffer : Do: AddToBuffer()
+
+    [*] -> ReadBit
+    ReadBit --> [*] : BYTE_WAS_GARBAGE
+    ReadBit --> ByteValidation : STOP_BIT_RECEIVED
+    ByteValidation --> [*] : BYTE_VALIDATION_FAILED
+    ByteValidation -> AddToBuffer : BYTE_VALIDATION_PASSED
+    AddToBuffer --> [*] : BYTE_ADDED_TO_BUFFER
+
+note bottom of ByteValidation
+    Parity Control will track
+    if the parity of the last byte was valid.
+    In addition, it will turn the UART input into
+    valid data.
+end note
+}
+    note top of ReportData
+    ReportData will report the data
+    to serial bus for the user to read and verify.
+    end note
+
+State ReportData
+ReportData : Entry: ReportData()
+
+[*] -> Idle
+Idle --> Read_UART : START_BIT_RECEIVED
+Read_UART --> Idle
+Idle -> ReportData : BYTE_RECEIVED
+ReportData -> Idle : BYTE_REPORTED
+
+
+@enduml
+
+@startuml State Machine Transmitter
+
+Title State Machine Transmitter
+
+State Idle
+Idle : Do: WaitForSerialData()
+State Read_Serial
+Read_Serial : Do: ReadSerialData()
+State Output_UART
+Output_UART : Do: OutputUARTData()
+
+[*] -> Idle
+Idle --> Read_Serial : SERIAL_DATA_AVAILABLE
+Read_Serial -> Output_UART : SERIAL_DATA_CONVERTED
+Output_UART -> Idle : UART_DATA_SENT
+
+@enduml
+
+@startuml Class Diagram Reciever
+
+Title Class Diagram Reciever
+
+enum Parity_Configruration
+{
+    EVEN
+    ODD
+    NONE
+}
+
+struct UART_Configuration
+{
+    int DataBits
+    int StopBits
+    Parity_Configruration Parity
+    int BaudRate
+}
+
+class UARTReciever
+{
+    - {field} Parity_Configruration _parity
+    - {field} UART_Configuration _configuration
+    
+    + {method} UARTReciever(UART_Configuration config, Parity_Configruration parity)
+    + {method} bool GetDataFromBuffer(byte* data)
+    + {method} bool Read(char* output)
+}
 
 @enduml
