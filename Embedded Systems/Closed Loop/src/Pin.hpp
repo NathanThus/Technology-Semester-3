@@ -68,10 +68,6 @@ public:
     /// @return Returns true or false.
     int DigitalRead();
 
-    /// @brief Not implemented yet.
-    /// @return -1, due to lack of implementation.
-    int AnalogRead();
-
     /// @brief Sets the pin to act as an interrupt pin.
     /// @param segment The segement the pin belongs to (A,B,C etc.)
     /// @param irqn_type The IRQn Handler this will need to attach to.

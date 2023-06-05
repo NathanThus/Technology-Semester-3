@@ -46,11 +46,6 @@ int Pin::DigitalRead()
     return GPIO->IDR & (1 << PinID);
 }
 
-int Pin::AnalogRead()
-{
-    return -1; // To be added later. This will require some timing shenanigans.
-}
-
 void Pin::SetAsInterrupt(InterruptPinSegment segment, IRQn_Type irqn_type)
 {
     const int CrRegister = PinID / 4;
