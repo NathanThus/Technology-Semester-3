@@ -8,3 +8,6 @@ For this final assignment, the intention is to create a closed loop system using
 
 ## ADC Troubles
 
+## Separating Tasks
+
+## WatchDog
