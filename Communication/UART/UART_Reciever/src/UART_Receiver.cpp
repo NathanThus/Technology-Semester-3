@@ -1,77 +1,129 @@
 #include "UART_Receiver.hpp"
 
-const int RX_PIN = 0;
+#define READ_RX_PIN (PIND & B00000001)
 
-UART_Receiver::UART_Receiver(UART_Configuration configuration) : _configuration(configuration)
+const long MicrosecondsPerSecond = 1000000;
+
+// START | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | PARITY | STOP | STOP
+// 0     | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  |   9    | 10   | 11
+
+const int StartBitIndex = 0;
+const int DataBitIndex = 1;
+
+int TotalBits = 0;
+
+UART_Receiver::UART_Receiver(UART_Configuration configuration) : uartConfiguration(configuration)
 {
-    TotalBits = _configuration.DataBits + _configuration.StopBits + ParityBits;
-    TimePerBit = 1000000/_configuration.BaudRate; //TODO: Remove magic number
-}
-
-// TODO: Implement this.
-bool UART_Receiver::GetDataFromBuffer(byte *data)
-{
-    if(data == NULL)
-    {
-        return false;
-    }
-
-    return false; // NOT IMPLEMENTED
-
-    *data = buffer[currentBufferIndex];
-    currentBufferIndex++;
-
-    if(currentBufferIndex >= bufferSize)
-    {
-        currentBufferIndex = 0;
-    }
-
-    return true;
+    TotalBits = uartConfiguration.DataBits + uartConfiguration.StopBits + uartConfiguration.ParityBit;
+    TimePerBit = MicrosecondsPerSecond / uartConfiguration.BaudRate;
 }
 
 bool UART_Receiver::CheckForStartBit()
 {
-    if(digitalRead(0) == HIGH)
+    if(READ_RX_PIN == 0)
     {
-        currentByte[0] = 1;
-        Serial.print((int)currentByte[0]);
-        currentByteIndex++;
-        ResetCurrentByte();
+        currentByte[StartBitIndex] = 0;
         return true;
     }
     return false;
 }
 
-bool UART_Receiver::ReadBit()
+void UART_Receiver::ReadBit()
 {
-    // Wrap this in a while loop?
-    currentByte[currentByteIndex] = !digitalRead(RX_PIN); // Might need to be a register call.
-    digitalWrite(13,currentByte[currentByteIndex]);
-    currentByteIndex++;
-    return currentByteIndex == TotalBits;
+    currentByte[currentBitIndex] = READ_RX_PIN;
+    currentBitIndex++;
+    hasAllData = (currentBitIndex == TotalBits);
 }
 
-void UART_Receiver::ResetCurrentByte()
+bool UART_Receiver::RecievedStopBits()
 {
-    currentBufferIndex = 0;
-    currentByteIndex = 0;
-
-    for (int i = 0; i < TotalBits; i++)
+    if(currentBitIndex != TotalBits)
     {
-        currentByte[i] = 0;
+        return false;
     }
-
-    hasStartBit = false;
-
-    for (int i = 0; i < StopBitCount; i++)
+    // TODO: Cleanup
+    switch (uartConfiguration.StopBits)
     {
-        StopBits[i] = 0;
+    case 1:
+        if(currentByte[TotalBits - 1] == 1)
+        {
+            return true;
+        }
+        break;
+
+    case 2:
+        if(currentByte[TotalBits - 1] == 1 && currentByte[TotalBits - 2] == 1)
+        {
+            return true;
+        }
+        break;
+    default:
+    return false;
     }
-        
-    parity = None;
+    return false;
 }
 
 bool UART_Receiver::CheckParity()
 {
-    return false; // TODO: Implement this.
+    int byteParity = 0;
+    for(int i = 0; i < uartConfiguration.DataBits; i++)
+    {
+        byteParity += currentByte[i];
+    }
+
+    switch (uartConfiguration.ParitySettings)
+    {
+    case Parity::None:
+        return true;
+        break;
+    case Parity::Odd:
+        return (byteParity % 2 == 1);
+        break;
+    case Parity::Even:
+        return (byteParity % 2 == 0);
+        break;
+    default:
+    return true;
+        break;
+    }
+}
+
+int UART_Receiver::ConvertByteArrayToByte()
+{
+    int result = 0;
+    for (int i = DataBitIndex; i <= uartConfiguration.DataBits; i++)
+    {
+        result |= currentByte[i] << (i - DataBitIndex);
+    }
+    return result;
+}
+
+void UART_Receiver::AddByteToBuffer()
+{
+    AvailableBytes[0] = ConvertByteArrayToByte();
+    ResetCurrentByte();
+}
+
+
+void UART_Receiver::GetDataFromBuffer(int& data)
+{
+    data = AvailableBytes[0];
+    currentBufferIndex++;
+
+    if(currentBufferIndex == bufferSize)
+    {
+        currentBufferIndex = 0;
+    }
+}
+
+
+
+void UART_Receiver::ResetCurrentByte()
+{
+    for(int i = 0; i < TotalBits; i++)
+    {
+        currentByte[i] = 0;
+    }
+    currentBitIndex = 1;
+    hasAllData = false;
 }

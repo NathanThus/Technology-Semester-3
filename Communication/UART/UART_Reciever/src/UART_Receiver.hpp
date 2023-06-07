@@ -3,19 +3,17 @@
 
 #include <Arduino.h>
 
-const int bufferSize = 8;
-const int StartBit = 1;
-const int StopBitCount = 2;
-const int ParityBits = 1;
+constexpr int bufferSize = 8;
+constexpr int PossibleTotalBits = 12;
 
 enum State
 {
-    Idle,
-    Read_UART,
-    Read_Bit,
-    Byte_Validation,
-    Add_To_Buffer,
-    Report_Data
+    Idle = 0,
+    Report_Data = 1,
+    Read_UART = 2,
+    Read_Bit = 3,
+    Byte_Validation = 4,
+    Add_To_Buffer = 5
 };
 
 enum Events
@@ -42,47 +40,52 @@ struct UART_Configuration
 {
     int DataBits;
     int StopBits;
+    Parity ParitySettings;
+    int ParityBit;
     int BaudRate;
 };
-
-
 
 class UART_Receiver
 {
     private:
-    UART_Configuration _configuration;
-
-    byte buffer[bufferSize]; // The buffer that holds the completed values. TODO: Might need a rework.
+    UART_Configuration uartConfiguration;
+    int AvailableBytes[bufferSize]; // The buffer that holds the completed values. TODO: Might need a rework.
     int currentBufferIndex = 0;
 
     // ======== INCOMING BYTE ======== //
-    bool hasStartBit = false;
-    int currentByte[bufferSize];
-    Parity parity = None;
-    int StopBits[StopBitCount];
-    int currentByteIndex = 0;
+    int availableData = 0;
+    int currentBitIndex = 1;
+    int currentByte[PossibleTotalBits];
 
-    int TotalBits = 0;
-
+    bool hasAllData = false;
     // ============ TIMING ============= //
     int TimePerBit = 0;
+
+    int ConvertByteArrayToByte();
 
     public:
 
         UART_Receiver(UART_Configuration configuration);
         
-        bool GetDataFromBuffer(byte* data);
         int GetTimePerBit() { return TimePerBit; }
-
+        /// @brief Checks if a start bit is available.
+        /// @return True if a start bit is available.
         bool CheckForStartBit();
-        bool ReadBit();
-        void ResetCurrentByte();
-
-        // ========================= //
-        // ==== Byte Validation ==== //
-        // ========================= //
-
+        /// @brief Reads the next bit in the byte.
+        void ReadBit();
+        /// @brief Checks if the stop bits are correct.
+        /// @return True if the stop bits are correct.
+        bool RecievedStopBits();
+        /// @brief Checks the parity of the current byte.
+        /// @return True if the parity is correct.
         bool CheckParity();
+        /// @brief Adds the current byte to the buffer.
+        void AddByteToBuffer();
+        /// @brief Returns the next byte in the buffer.
+        /// @param data Where the data is stored.
+        void GetDataFromBuffer(int& data);
+        /// @brief Resets all data required for a new byte.
+        void ResetCurrentByte();
 
 };
 
