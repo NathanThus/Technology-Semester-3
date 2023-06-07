@@ -13,7 +13,7 @@
 
 const int dataBits = 8;
 const int stopBits = 1;
-const int baudrate = 300; // 300 is the target for 7/6/23
+const int baudrate = 1; // 300 is the target for 7/6/23
 
 // ============ //
 // === TIME === //
@@ -51,23 +51,6 @@ void HandleIdleState(Events ev)
     }
 }
 
-void HandleAddToBuffer(Events ev)
-{
-    if(ev == BYTE_ADDED_TO_BUFFER)
-    {
-      uart->AddByteToBuffer();
-      ev = BYTE_RECEIVED;
-      currentState = Idle;
-      return;
-    }
-    else if(ev == BYTE_WAS_GARBAGE)
-    {
-      uart->ResetCurrentByte();
-      currentState = Idle;
-      return;
-    }
-}
-
 void HandleReadBitState(Events ev)
 {
   if(ev == STOP_BIT_RECIEVED)
@@ -87,9 +70,24 @@ void HandleReadBitState(Events ev)
     currentEvent = STOP_BIT_RECIEVED;
     return;
   }
-
 }
 
+void HandleAddToBuffer(Events ev)
+{
+    if(ev == BYTE_ADDED_TO_BUFFER)
+    {
+      uart->AddByteToBuffer();
+      ev = BYTE_RECEIVED;
+      currentState = Idle;
+      return;
+    }
+    else if(ev == BYTE_WAS_GARBAGE)
+    {
+      uart->ResetCurrentByte();
+      currentState = Idle;
+      return;
+    }
+}
 
 void HandleByteValidation(Events ev) //TODO: Needs some SERIOUS cleanup.
 {
@@ -120,10 +118,10 @@ void HandleReportData(Events ev)
   uart->AddByteToBuffer();
   int data;
   
-  Serial.println("");
-  Serial.println("Data: ");
+  Serial.println();
+  Serial.println("Read Byte: ");
 
-  uart->GetDataFromBuffer(data);
+  uart->GetDataFromBuffer(&data);
   Serial.println(data);
 
   currentState = Idle;
@@ -168,8 +166,6 @@ void HandleEvent(Events ev)
     break;
   }
 }
-
-
 
 void loop()
 {
