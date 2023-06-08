@@ -13,13 +13,12 @@
 
 const int dataBits = 8;
 const int stopBits = 1;
-const int baudrate = 1; // 300 is the target for 7/6/23
+const int baudrate = 300; // 300 is the target for 7/6/23
 
 // ============ //
 // === TIME === //
 // ============ //
 
-unsigned long currentTime = 0;
 unsigned long startTime = 0;
 long bitTime = 0;
 
@@ -37,32 +36,22 @@ void setup() {
 
 void HandleIdleState(Events ev)
 {
-    if(ev == START_BIT_RECIEVED)
-    {
-      currentState = Read_Bit; // ACTUALLY go to the right state. Read_UART is a general state, not a specific one.
-      return;
-    }
-
     if(uart->CheckForStartBit())
     {
-      currentEvent = START_BIT_RECIEVED;
       startTime = micros() + (0.5 * uart->GetTimePerBit()); // TODO: Potential slowdown
+      currentEvent = START_BIT_RECIEVED; // TODO: ???
+      currentState = Read_Bit;
       return;
     }
 }
 
 void HandleReadBitState(Events ev)
 {
-  if(ev == STOP_BIT_RECIEVED)
-  {
-    currentState = Byte_Validation;
-    return;
-  }
-
-  if (micros() >= startTime + currentTime) // Check if the bit time has elapsed
+  if(micros() >= startTime + uart->GetTimePerBit())
   {
     uart->ReadBit();
-    currentTime += uart->GetTimePerBit(); // Increment the current time by the time per bit
+    startTime = micros();
+    return;
   }
 
   if(uart->RecievedStopBits())
@@ -70,6 +59,13 @@ void HandleReadBitState(Events ev)
     currentEvent = STOP_BIT_RECIEVED;
     return;
   }
+
+  if(ev == STOP_BIT_RECIEVED)
+  {
+    currentState = Byte_Validation;
+    return;
+  }
+
 }
 
 void HandleAddToBuffer(Events ev)
@@ -94,18 +90,14 @@ void HandleByteValidation(Events ev) //TODO: Needs some SERIOUS cleanup.
     if(uart->CheckParity())
     {
       ev = BYTE_VALIDATION_PASSED;
+      currentState = Report_Data;
     }
     else
     {
       ev = BYTE_VALIDATION_FAILED;
     }
 
-    if(ev == BYTE_VALIDATION_PASSED)
-    {
-      currentState = Report_Data;
-      return;
-    }
-    else if(ev == BYTE_VALIDATION_FAILED)
+    if(ev == BYTE_VALIDATION_FAILED)
     {
       uart->ResetCurrentByte();
       currentState = Idle;
@@ -118,11 +110,15 @@ void HandleReportData(Events ev)
   uart->AddByteToBuffer();
   int data;
   
-  Serial.println();
-  Serial.println("Read Byte: ");
-
   uart->GetDataFromBuffer(&data);
-  Serial.println(data);
+  if(data == 0)
+  {
+    Serial.write("NULL"); // This will eventually handle /r/n
+  }
+  else
+  {
+    Serial.write(data);
+  }
 
   currentState = Idle;
   currentEvent = BYTE_REPORTED;

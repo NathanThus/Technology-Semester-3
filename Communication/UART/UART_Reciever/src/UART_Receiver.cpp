@@ -15,7 +15,7 @@ int TotalBits = 0;
 UART_Receiver::UART_Receiver(UART_Configuration configuration) : uartConfiguration(configuration)
 {
     TotalBits = uartConfiguration.DataBits + uartConfiguration.StopBits + uartConfiguration.ParityBit;
-    TimePerBit = MicrosecondsPerSecond / uartConfiguration.BaudRate;
+    TimePerBit = MicrosecondsPerSecond/uartConfiguration.BaudRate;
 }
 
 bool UART_Receiver::CheckForStartBit()
@@ -32,35 +32,18 @@ void UART_Receiver::ReadBit()
 {
     currentByte[currentBitIndex] = READ_RX_PIN;
     currentBitIndex++;
-    hasAllData = (currentBitIndex == TotalBits);
 }
 
 bool UART_Receiver::RecievedStopBits()
 {
-    if(currentBitIndex != TotalBits)
+    for (int i = TotalBits - uartConfiguration.StopBits; i < uartConfiguration.StopBits; i++)
     {
-        return false;
-    }
-    // TODO: Cleanup
-    switch (uartConfiguration.StopBits)
-    {
-    case 1:
-        if(currentByte[TotalBits - 1] == 1)
+        if(currentByte[i] != 1)
         {
-            return true;
+            return false;
         }
-        break;
-
-    case 2:
-        if(currentByte[TotalBits - 1] == 1 && currentByte[TotalBits - 2] == 1)
-        {
-            return true;
-        }
-        break;
-    default:
-    return false;
     }
-    return false;
+    return true;
 }
 
 bool UART_Receiver::CheckParity()
@@ -71,27 +54,20 @@ bool UART_Receiver::CheckParity()
         byteParity += currentByte[i];
     }
 
-    switch (uartConfiguration.ParitySettings)
+    if(uartConfiguration.ParitySettings == None)
     {
-    case Parity::None:
         return true;
-        break;
-    case Parity::Odd:
-        return (byteParity % 2 == 1);
-        break;
-    case Parity::Even:
-        return (byteParity % 2 == 0);
-        break;
-    default:
-    return true;
-        break;
+    }
+    else
+    {
+        return (byteParity % 2 == (uartConfiguration.ParitySettings % 2));
     }
 }
 
 int UART_Receiver::ConvertByteArrayToByte()
 {
     int result = 0;
-    for (int i = DataBitIndex; i <= uartConfiguration.DataBits; i++)
+    for (int i = DataBitIndex; i < uartConfiguration.DataBits; i++)
     {
         result |= currentByte[i] << (i - DataBitIndex);
     }
@@ -100,23 +76,22 @@ int UART_Receiver::ConvertByteArrayToByte()
 
 void UART_Receiver::AddByteToBuffer()
 {
-    AvailableBytes[0] = ConvertByteArrayToByte();
+    AvailableByte = ConvertByteArrayToByte();
+
     ResetCurrentByte();
 }
 
 
-void UART_Receiver::GetDataFromBuffer(int& data)
+void UART_Receiver::GetDataFromBuffer(int* data)
 {
-    data = AvailableBytes[0];
-    currentBufferIndex++;
-
-    if(currentBufferIndex == bufferSize)
+    if(data == nullptr)
     {
-        currentBufferIndex = 0;
+        return;
     }
+
+    *data = AvailableByte;
+    AvailableByte = 0;
 }
-
-
 
 void UART_Receiver::ResetCurrentByte()
 {

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 
-constexpr int bufferSize = 8;
 constexpr int PossibleTotalBits = 12;
 
 enum State
@@ -49,11 +48,9 @@ class UART_Receiver
 {
     private:
     UART_Configuration uartConfiguration;
-    int AvailableBytes[bufferSize]; // The buffer that holds the completed values. TODO: Might need a rework.
-    int currentBufferIndex = 0;
+    int AvailableByte; // The value of the byte that is available to be read.
 
     // ======== INCOMING BYTE ======== //
-    int availableData = 0;
     int currentBitIndex = 1;
     int currentByte[PossibleTotalBits];
 
@@ -83,7 +80,7 @@ class UART_Receiver
         void AddByteToBuffer();
         /// @brief Returns the next byte in the buffer.
         /// @param data Where the data is stored.
-        void GetDataFromBuffer(int& data);
+        void GetDataFromBuffer(int* data);
         /// @brief Resets all data required for a new byte.
         void ResetCurrentByte();
 
