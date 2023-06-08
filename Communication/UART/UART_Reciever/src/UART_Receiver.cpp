@@ -100,5 +100,4 @@ void UART_Receiver::ResetCurrentByte()
         currentByte[i] = 0;
     }
     currentBitIndex = 1;
-    hasAllData = false;
 }
