@@ -1,170 +1,268 @@
 #include <Arduino.h>
-#include "UART_Receiver.hpp"
 
-// ============= //
-// === DEBUG === //
-// ============= //
+// SETTINGS
 
-#define TOGGLE_LED digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN))
+#define BAUD_300
+#define NO_PARITY
 
-// ============ //
-// === DATA === //
-// ============ //
+// Define a set of prescalers, equivelant to thrice the baud rate
 
-const int dataBits = 8;
-const int stopBits = 1;
-const int baudrate = 300; // 300 is the target for 7/6/23
+#ifdef BAUD_9600
+#define COMPARE_REGISTER 34
+#endif
+#ifdef BAUD_300
+#define COMPARE_REGISTER 166
+#endif
 
-// ============ //
-// === TIME === //
-// ============ //
+
+#ifdef NO_PARITY
+#define PARITY_BIT -1
+#endif
+#ifdef PARTITY_EVEN
+#define PARITY_BIT 0
+#endif
+#ifdef PARTITY_ODD
+#define PARITY_BIT 1
+#endif
+
+enum Event
+{
+    NONE,
+    START_BIT_RECEIVED,
+    BYTE_RECEIVED,
+    BYTE_REPORTED,
+    STOP_BIT_RECEIVED,
+    BYTE_VALIDATION_FAILED,
+    BYTE_VALIDATION_PASSED,
+    BYTE_ADDED_TO_BUFFER
+
+};
+
+enum State
+{
+    IDLE,
+    REPORT_DATA,
+    READ_BIT,
+    BYTE_VALIDATION,
+    ADD_TO_BUFFER
+};
+
+constexpr int baudRate = 300;
+constexpr long MicroSecondsPerSecond = 1000000;
+constexpr long SampleTime = MicroSecondsPerSecond / baudRate; // NOTE: Unused
+constexpr long MaximumBits = 12;
+constexpr long NumberOfSamples = 3;
+constexpr int ParityBit = 9;
+
+int exportByte = 0;
+
+int Bits[MaximumBits];
+int SampleBits[MaximumBits];
+int sampleCount = 0;
+int bitCount = 0;
+bool correctParity = false;
 
 unsigned long startTime = 0;
-long bitTime = 0;
 
-UART_Receiver *uart;
+State currentState = IDLE;
+Event newEvent = NONE;
 
-State currentState = Idle;
-Events currentEvent = NONE;
+void setup()
+{
+    cli(); // Cease all Interrupts for now
 
-void setup() {
-  UART_Configuration uartConfig = {dataBits, stopBits, None, 0, baudrate};
-  uart = new UART_Receiver(uartConfig);
+    // Using COMPARE_REGISTER, set up timer 1 to interrupt every 3 times the baud rate, so we can sample thrice!
+    TCCR1A = 0; // Set all bits to 0
+    TCCR1B = 0; // Set all bits to 0
+    TCNT1 = 0; // Set timer to 0
+    OCR1A = COMPARE_REGISTER; // Set compare register to 34
+    TCCR1B |= (1 << WGM12); // Set CTC mode
+    TCCR1B |= (1 << CS10); // Set prescaler to 1
+    TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
 
-  Serial.begin(baudrate);
+    sei(); // Renable Interrupts
+    Serial.begin(baudRate);
 }
 
-void HandleIdleState(Events ev)
+/// ================= AUXILLARY FUNCTIONS ================= ///
+
+int CheckForStartBit()
 {
-    if(uart->CheckForStartBit())
+    return !(PINB & 0b00000001);
+}
+
+int ReadBit()
+{
+    return (PINB & 0b00000001);
+}
+
+void SampleBit()
+{
+    SampleBits[sampleCount] = ReadBit();
+    sampleCount++;
+}
+
+int ValidateBit() //TODO: Might be a bit too slow
+{
+    int total = 0;
+    for (int i = 0; i < NumberOfSamples; i++)
     {
-      startTime = micros() + (0.5 * uart->GetTimePerBit()); // TODO: Potential slowdown
-      currentEvent = START_BIT_RECIEVED; // TODO: ???
-      currentState = Read_Bit;
-      return;
+        total += SampleBits[i];
+    }
+    
+    return total >= 2;
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+    TIFR1 |= (1 << OCF1A); // Reset the interrupt flag //TODO: Put this in a define?
+    // Sample bit
+    SampleBit();
+    if(sampleCount == 3)
+    {
+        Bits[bitCount] = ValidateBit();
+        bitCount++;
+        sampleCount = 0;
     }
 }
 
-void HandleReadBitState(Events ev)
+void Reset()
 {
-  if(micros() >= startTime + uart->GetTimePerBit())
-  {
-    uart->ReadBit();
-    startTime = micros();
-    return;
-  }
-
-  if(uart->RecievedStopBits())
-  {
-    currentEvent = STOP_BIT_RECIEVED;
-    return;
-  }
-
-  if(ev == STOP_BIT_RECIEVED)
-  {
-    currentState = Byte_Validation;
-    return;
-  }
-
+    bitCount = 0;
+    sampleCount = 0;
+    for (int i = 0; i < MaximumBits; i++)
+    {
+        Bits[i] = 0;
+        SampleBits[i] = 0;
+    }
+    exportByte = 0;
+    correctParity = false;
 }
 
-void HandleAddToBuffer(Events ev)
+void ValidateByte()
 {
-    if(ev == BYTE_ADDED_TO_BUFFER)
+    int parityData = 0;
+    // For now, just tally the bits and move to the add buffer.
+    for (int i = 1; i <= 8; i++)
     {
-      uart->AddByteToBuffer();
-      ev = BYTE_RECEIVED;
-      currentState = Idle;
-      return;
+        exportByte += (Bits[i] << i);
+        if(i == 1)
+        {
+            parityData++;
+        }
     }
-    else if(ev == BYTE_WAS_GARBAGE)
+
+    if(PARITY_BIT == -1)
     {
-      uart->ResetCurrentByte();
-      currentState = Idle;
-      return;
+        return;
     }
+
+    CheckParity(parityData);
 }
 
-void HandleByteValidation(Events ev) //TODO: Needs some SERIOUS cleanup.
+void CheckParity(int parityData)
 {
-    if(uart->CheckParity())
+    correctParity = (parityData % 2 == PARITY_BIT);
+
+    if(!correctParity)
     {
-      ev = BYTE_VALIDATION_PASSED;
-      currentState = Report_Data;
+        Reset();
+        currentState = IDLE;
+        return;
     }
     else
     {
-      ev = BYTE_VALIDATION_FAILED;
+        currentState = ADD_TO_BUFFER;
+    }
+}
+
+void StartBitFound()
+{
+    startTime = micros();
+    Bits[0] = 0;
+    bitCount++;
+    currentState = READ_BIT;
+}
+
+/// ================= STATE MACHINE ================= ///
+
+// Need functions for all states
+void Handle_Idle(Event ev)
+{
+    if(CheckForStartBit())
+    {
+
+        return;
     }
 
+    if(ev == BYTE_RECEIVED)
+    {
+        currentState = REPORT_DATA;
+        return;
+    }
     if(ev == BYTE_VALIDATION_FAILED)
     {
-      uart->ResetCurrentByte();
-      currentState = Idle;
-      return;
+        Reset();
+        return;
     }
 }
 
-void HandleReportData(Events ev)
+void Handle_ReportData(Event ev)
 {
-  uart->AddByteToBuffer();
-  int data;
-  
-  uart->GetDataFromBuffer(&data);
-  if(data == 0)
-  {
-    Serial.write("NULL"); // This will eventually handle /r/n
-  }
-  else
-  {
-    Serial.write(data);
-  }
-
-  currentState = Idle;
-  currentEvent = BYTE_REPORTED;
+    Serial.print("Byte received: ");
+    Serial.println((char)exportByte);
 }
 
-void HandleReadUARTState(Events ev)
+void Handle_ReadBit(Event ev)
 {
-  switch (currentState)
-  {
-    case Read_Bit:
-    HandleReadBitState(ev);
-    break;
-    case Byte_Validation:
-    HandleByteValidation(ev);
-    break;
-    case Add_To_Buffer:
-    HandleAddToBuffer(ev);
-    break;
-  default:
-    break;
-  }
+    if(bitCount == MaximumBits)
+    {
+        TIMSK1 &= ~(0 << OCIE1A); // Disable the timer while we validate the byte
+        currentState = BYTE_VALIDATION;
+        return;
+    }
 }
 
-void HandleEvent(Events ev)
+void Handle_ByteValidation(Event ev)
 {
-  if (currentState >= Read_UART)
-  {
-    HandleReadUARTState(ev);
-    return;
-  }
+    ValidateByte();
+    if(correctParity)
+    {
+        currentState = ADD_TO_BUFFER;
+    }
+    else
+    {
+        newEvent = BYTE_VALIDATION_FAILED;
+        currentState = IDLE;
+    }
+    currentState = ADD_TO_BUFFER;
+}
 
-  switch (currentState)
-  {
-  case Idle:
-    HandleIdleState(ev);
-    break;
-  case Report_Data:
-    HandleReportData(ev);
-    break;
-  default:
-    break;
-  }
+void Handle_AddToBuffer(Event ev)
+{
+    currentState = REPORT_DATA;
 }
 
 void loop()
 {
-  HandleEvent(currentEvent);
+    switch (currentState)
+    {
+    case IDLE:
+        Handle_Idle(newEvent);
+        break;
+    case REPORT_DATA:
+        Handle_ReportData(newEvent);
+        break;
+    case READ_BIT:
+        Handle_ReadBit(newEvent);
+        break;
+    case BYTE_VALIDATION:
+        Handle_ByteValidation(newEvent);
+        break;
+    case ADD_TO_BUFFER:
+        Handle_AddToBuffer(newEvent);
+        break;
+    default:
+        break;
+    }
 }
-
