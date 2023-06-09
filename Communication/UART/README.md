@@ -1,9 +1,5 @@
 # UART
 
-## Transmitter
-
-Takes the incoming bit from the computer, flips the byte, adds stop & start. Then sends it to the reciever. Bit by bit.
-
 ## Reciever
 
 1 Timer for recieving, 1 timer for sampling (Far faster)
@@ -15,3 +11,11 @@ Keep track of bit count.
 ## Both
 
 Timer Interrupt.
+
+## Timing
+
+### Micros vs Interrupts
+
+lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
+
+### Sampling
