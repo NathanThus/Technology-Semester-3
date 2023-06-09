@@ -14,11 +14,9 @@ constexpr int numberOfParityBits = 0;
 constexpr int numberOfStartBits = 1;
 constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
 
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(BAUDRATE);
-  pinMode(13, OUTPUT); // TODO: Remove
   pinMode(OUTPUT_PIN, OUTPUT);
 }
 
@@ -28,37 +26,30 @@ void loop() {
   //   return;
   // }
 
-  // char inboundByte = 'a';
+  char inboundByte = 'a';
 
   int exportByte[numberOfBits] = {0};
-  // int partiyBit = 0;
-  // exportByte[0] = STARTBIT;
+  int partiyBit = 0;
 
+  exportByte[0] = STARTBIT;
   
-  // for (int i = numberOfDataBits; i >= numberOfStartBits; i--)
-  // {
-  //   exportByte[numberOfBits - i] = (inboundByte >> (i - 1)) & 1;
-  // }
+  for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
+  {
+    exportByte[i] = inboundByte & 128;
+    inboundByte <<= 1;
+  }
 
-  //Fill exportByte with the data of 'a'
-  exportByte[0] = 0;
-  exportByte[1] = 1;
-  exportByte[2] = 0;
-  exportByte[3] = 0;
-  exportByte[4] = 0;
-  exportByte[5] = 0;
-  exportByte[6] = 1;
-  exportByte[7] = 1;
-  exportByte[8] = 0;
-
-  // Insert parity
-  // for (int i = numberOfDataBits; i < numberOfParityBits; i++)
-  // {
-  //   exportByte[i] = partiyBit % 2; // TODO: Check if this is correct
-  //   i++;
-  // }
+  if(numberOfParityBits > 0)
+  {
+    // Insert parity
+    for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
+    {
+      exportByte[numberOfDataBits + i] = partiyBit;
+    }
+  }
   
-  for (int i = numberOfDataBits + numberOfParityBits; i < numberOfStopBits; i++)
+  // Needs a for loop to add the stop bits
+  for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits; i++)
   {
     exportByte[i] = STOPBIT;
   }
@@ -75,4 +66,3 @@ void loop() {
   }
   delay(100);
 }
-
