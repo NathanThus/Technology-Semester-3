@@ -160,10 +160,10 @@ void ValidateByte()
         }
         CheckParity(parityData);
     }
-    
+
     for (int i = 1; i < numberOfDataBits; i++) // FINALLY EXPORT THE BYTE
     {
-        exportByte += (Bits[i] << i);
+        exportByte += Bits[i] << i - 1;
     }
 
 }
