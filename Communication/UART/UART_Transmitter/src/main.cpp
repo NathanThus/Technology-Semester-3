@@ -3,6 +3,7 @@
 #define BAUDRATE 9600
 #define STARTBIT 0
 #define STOPBIT 1
+#define OUTPUT_PIN 2
 
 constexpr long MicroSecondsPerSecond = 1000000;
 constexpr long TimePerBit = MicroSecondsPerSecond / BAUDRATE;
@@ -17,8 +18,8 @@ constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParit
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(BAUDRATE);
-  pinMode(13, OUTPUT);
-  pinMode(2, OUTPUT);
+  pinMode(13, OUTPUT); // TODO: Remove
+  pinMode(OUTPUT_PIN, OUTPUT);
 }
 
 void loop() {
@@ -27,17 +28,16 @@ void loop() {
   //   return;
   // }
 
-  // char inboundByte = Serial.read();
+  // char inboundByte = 'a';
 
   int exportByte[numberOfBits] = {0};
   // int partiyBit = 0;
-
   // exportByte[0] = STARTBIT;
+
   
-  // Insert data //TODO: Fix
-  // for (int i = numberOfStartBits; i < numberOfDataBits; i++)
+  // for (int i = numberOfDataBits; i >= numberOfStartBits; i--)
   // {
-  //   exportByte[i] = (inboundByte >> (i - 1)) & 1; //TODO: Might not be optimal.
+  //   exportByte[numberOfBits - i] = (inboundByte >> (i - 1)) & 1;
   // }
 
   //Fill exportByte with the data of 'a'
@@ -50,7 +50,6 @@ void loop() {
   exportByte[6] = 1;
   exportByte[7] = 1;
   exportByte[8] = 0;
-  exportByte[9] = 1;
 
   // Insert parity
   // for (int i = numberOfDataBits; i < numberOfParityBits; i++)
@@ -59,32 +58,20 @@ void loop() {
   //   i++;
   // }
   
-  // for (int i = numberOfDataBits + partiyBit; i < numberOfStopBits; i++)
-  // {
-  //   exportByte[i] = STOPBIT;
-  // }
+  for (int i = numberOfDataBits + numberOfParityBits; i < numberOfStopBits; i++)
+  {
+    exportByte[i] = STOPBIT;
+  }
 
-  // int bitcount = 0;
   unsigned long nextBitTime = micros();
-  //OLD
-  // while (bitcount < numberOfBits)
-  // {
-  //   if (micros() >= nextBitTime)
-  //   {
-  //     nextBitTime = micros() + TimePerBit;
-  //     digitalWrite(2, exportByte[bitcount]);
-  //     ++bitcount;
-  //   }
-  // }
 
   for (int i = 0; i < numberOfBits; i++)
   {
-    // digitalWrite(13,!digitalRead(13));
     while(micros() < nextBitTime)
     {
     }
     nextBitTime = micros() + TimePerBit;
-    digitalWrite(2, exportByte[i]);
+    digitalWrite(OUTPUT_PIN, exportByte[i]);
   }
   delay(100);
 }
