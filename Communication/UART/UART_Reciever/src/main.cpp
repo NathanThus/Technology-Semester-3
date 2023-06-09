@@ -2,28 +2,12 @@
 
 // SETTINGS
 
-#define BAUD_300
-#define NO_PARITY
+#define BAUDRATE 300
+#define INPUT_PIN 2
 
-// Define a set of prescalers, equivelant to thrice the baud rate
-
-#ifdef BAUD_9600
-#define COMPARE_REGISTER 34
-#endif
-#ifdef BAUD_300
-#define COMPARE_REGISTER 166
-#endif
-
-
-#ifdef NO_PARITY
-#define PARITY_BIT -1
-#endif
-#ifdef PARTITY_EVEN
-#define PARITY_BIT 0
-#endif
-#ifdef PARTITY_ODD
-#define PARITY_BIT 1
-#endif
+// Define a set of prescalers & Compare Registers, equivelant to thrice the baud rate for each baud rate
+// DEBUG
+#define TOGGLE_LED PORTB ^= (1 << PORTB5)
 
 enum Event
 {
@@ -47,20 +31,25 @@ enum State
     ADD_TO_BUFFER
 };
 
-constexpr int baudRate = 300;
+constexpr long numberOfSamples = 3;
 constexpr long MicroSecondsPerSecond = 1000000;
-constexpr long SampleTime = MicroSecondsPerSecond / baudRate; // NOTE: Unused
-constexpr long MaximumBits = 12;
-constexpr long NumberOfSamples = 3;
-constexpr int ParityBit = 9;
+constexpr long SampleTime = (MicroSecondsPerSecond / BAUDRATE) / numberOfSamples;
+constexpr int RequiredSampleThreshold =  (numberOfSamples / 2) + 1;
+
+constexpr int numberOfDataBits = 8;
+constexpr int numberOfStopBits = 1;
+constexpr int numberOfParityBits = 0;
+constexpr int numberOfStartBits = 1;
+constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
+
+unsigned long nextBitTime = 0;
 
 int exportByte = 0;
 
-int Bits[MaximumBits];
-int SampleBits[MaximumBits];
+int Bits[numberOfBits];
+int SampleBits[numberOfSamples * numberOfBits];
 int sampleCount = 0;
-int bitCount = 0;
-bool correctParity = false;
+bool correctParity = false; //TODO Optimise the everloving .... out of this
 
 unsigned long startTime = 0;
 
@@ -69,129 +58,130 @@ Event newEvent = NONE;
 
 void setup()
 {
-    cli(); // Cease all Interrupts for now
-
-    // Using COMPARE_REGISTER, set up timer 1 to interrupt every 3 times the baud rate, so we can sample thrice!
-    TCCR1A = 0; // Set all bits to 0
-    TCCR1B = 0; // Set all bits to 0
-    TCNT1 = 0; // Set timer to 0
-    OCR1A = COMPARE_REGISTER; // Set compare register to 34
-    TCCR1B |= (1 << WGM12); // Set CTC mode
-    TCCR1B |= (1 << CS10); // Set prescaler to 1
-    TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
-
-    sei(); // Renable Interrupts
-    Serial.begin(baudRate);
+    pinMode(INPUT_PIN, INPUT); //TODO: Remove magic number
+    pinMode(13, OUTPUT);
+    Serial.begin(BAUDRATE);
 }
 
 /// ================= AUXILLARY FUNCTIONS ================= ///
-
+#pragma region Auxillary Functions
 int CheckForStartBit()
 {
-    return !(PINB & 0b00000001);
+    return !(PIND & 0b00000100);
 }
 
 int ReadBit()
 {
-    return (PINB & 0b00000001);
+    return (PIND & 0b00000100);
 }
 
-void SampleBit()
-{
-    SampleBits[sampleCount] = ReadBit();
-    sampleCount++;
-}
 
-int ValidateBit() //TODO: Might be a bit too slow
+void SampleByte()
 {
-    int total = 0;
-    for (int i = 0; i < NumberOfSamples; i++)
+  for (int i = 0; i < numberOfSamples * numberOfBits; i++)
+  {
+    while(micros() < nextBitTime)
     {
-        total += SampleBits[i];
     }
-    
-    return total >= 2;
-}
+    nextBitTime = micros() + SampleTime;
+    SampleBits[i] = ReadBit();
+  }
 
-ISR(TIMER1_COMPA_vect)
-{
-    TIFR1 |= (1 << OCF1A); // Reset the interrupt flag //TODO: Put this in a define?
-    // Sample bit
-    SampleBit();
-    if(sampleCount == 3)
+    for (int i = 0; i < numberOfBits; i++)
     {
-        Bits[bitCount] = ValidateBit();
-        bitCount++;
-        sampleCount = 0;
+        for (int j = 0; j < numberOfSamples; j++)
+        {
+            Bits[i] += SampleBits[i * numberOfSamples + j];
+        }
+        Bits[i] = (Bits[i] >= RequiredSampleThreshold);
     }
 }
 
 void Reset()
 {
-    bitCount = 0;
     sampleCount = 0;
-    for (int i = 0; i < MaximumBits; i++)
+    for (int i = 0; i < numberOfBits; i++)
     {
         Bits[i] = 0;
+    }
+
+    for (int i = 0; i < numberOfSamples; i++)
+    {
         SampleBits[i] = 0;
     }
+    
     exportByte = 0;
     correctParity = false;
 }
 
-void ValidateByte()
+bool CheckParity(int parityData)
 {
-    int parityData = 0;
-    // For now, just tally the bits and move to the add buffer.
-    for (int i = 1; i <= 8; i++)
-    {
-        exportByte += (Bits[i] << i);
-        if(i == 1)
-        {
-            parityData++;
-        }
-    }
-
-    if(PARITY_BIT == -1)
-    {
-        return;
-    }
-
-    CheckParity(parityData);
-}
-
-void CheckParity(int parityData)
-{
-    correctParity = (parityData % 2 == PARITY_BIT);
+    // correctParity = (parityData % 2 == PARITY_BIT); // TODO: Fix this
 
     if(!correctParity)
     {
         Reset();
         currentState = IDLE;
-        return;
+        return false;
     }
     else
     {
         currentState = ADD_TO_BUFFER;
+        return true;
     }
+}
+
+void ValidateByte()
+{
+    int parityData = 0;
+
+    if(Bits[0] != 0)
+    {
+        Reset();
+        currentState = IDLE;
+        return;
+    }
+
+    for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits - numberOfStopBits; i++)
+    {
+        if(Bits[i] != 1)
+        {
+            Reset();
+            currentState = IDLE;
+            return;
+        }
+    }
+
+    if(numberOfParityBits > 0)
+    {
+        for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
+        {
+            parityData += Bits[i];
+        }
+        CheckParity(parityData);
+    }
+    
+    for (int i = 1; i < numberOfDataBits; i++) // FINALLY EXPORT THE BYTE
+    {
+        exportByte += (Bits[i] << i);
+    }
+
 }
 
 void StartBitFound()
 {
     startTime = micros();
-    Bits[0] = 0;
-    bitCount++;
     currentState = READ_BIT;
 }
-
+#pragma endregion
 /// ================= STATE MACHINE ================= ///
-
+#pragma region State Machine
 // Need functions for all states
 void Handle_Idle(Event ev)
 {
     if(CheckForStartBit())
     {
-
+        StartBitFound();
         return;
     }
 
@@ -209,18 +199,18 @@ void Handle_Idle(Event ev)
 
 void Handle_ReportData(Event ev)
 {
-    Serial.print("Byte received: ");
-    Serial.println((char)exportByte);
+    Serial.println();
+    Serial.print("From Reciever: ");
+    Serial.println(exportByte);
+    Reset();
+    currentState = IDLE;
 }
 
 void Handle_ReadBit(Event ev)
 {
-    if(bitCount == MaximumBits)
-    {
-        TIMSK1 &= ~(0 << OCIE1A); // Disable the timer while we validate the byte
-        currentState = BYTE_VALIDATION;
-        return;
-    }
+    SampleByte();
+    currentState = BYTE_VALIDATION;
+    return;
 }
 
 void Handle_ByteValidation(Event ev)
@@ -242,6 +232,7 @@ void Handle_AddToBuffer(Event ev)
 {
     currentState = REPORT_DATA;
 }
+#pragma endregion
 
 void loop()
 {
