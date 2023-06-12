@@ -72,10 +72,8 @@ extern UART_HandleTypeDef huart2;
 ADC_HandleTypeDef hadc1;
 SimpleWatchDog watchDog = {IWDG};
 
-Pin OutputPin = {GPIOB, 10};
-Pin InputPin = {GPIOB, 4};
-
-Servo servo(InputPin, OutputPin);
+// Pin OutputPin = {GPIOB, 10};
+// Pin InputPin = {GPIOB, 4};
 
 int LightIntensity;
 int previousLightIntensity;
@@ -166,10 +164,9 @@ void MX_FREERTOS_Init(void)
 {
   /* USER CODE BEGIN Init */
   watchDog.SetPrescaler(PSC_256);
-  watchDog.SetTimeout(IWDG_RLR_SECOND * 2);
+  watchDog.SetTimeout(1000);
   /* USER CODE END Init */
   MX_ADC1_Init();
-  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -211,7 +208,8 @@ void MX_FREERTOS_Init(void)
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
-  // watchDog.Start(); // ACTIVATE THE WATCH DOG
+  watchDog.Start(); // ACTIVATE THE WATCH DOG
+
   const int bufferSize = 20;
   char buffer[bufferSize];
   snprintf(buffer,bufferSize,"Starting up!\n");
@@ -240,11 +238,15 @@ void StartSerialTask(void *argument)
   
   for (;;)
   {
-    snprintf(sendBuffer, 20, "Position: %d\n", servo.GetPosition());
+    osMutexAcquire(LightIntensityMutex,osWaitForever);
+    snprintf(sendBuffer, 20, "Position: %d\n", TIM3->CCR3); //servo.GetPosition());
+    // snprintf(sendBuffer, 20, "Light: %d\n", LightIntensity); //servo.GetPosition());
+    osMutexRelease(LightIntensityMutex);
     HAL_UART_Transmit(&huart2, (uint8_t *)sendBuffer, strlen(sendBuffer), Max_Timeout);
+
     while(HAL_UART_Receive(&huart2, (uint8_t *)rxChar, 1, 0) == HAL_OK)
     {
-      if((rxChar < 58 && rxChar > 46))
+      if(rxChar <= '0' && rxChar >= '9')
       {
         valueBuffer[index] += rxChar;
       }
@@ -276,7 +278,7 @@ void StartServoTask(void *argument)
       SwitchDirection();
     }
     osMutexRelease(LightIntensityMutex);
-    servo.SetAngle(servo.GetPosition() + (int) lastDirection);
+    //Set Angle //servo.SetAngle(servo.GetPosition() + (int) lastDirection);
     osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
@@ -286,10 +288,10 @@ void StartADCTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  HAL_ADC_Start(&hadc1);
-  HAL_ADC_PollForConversion(&hadc1, 1);
   for (;;)
   {
+    HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, 1);
     osMutexAcquire(LightIntensityMutex,osWaitForever);
     previousLightIntensity = LightIntensity;
     LightIntensity = HAL_ADC_GetValue(&hadc1);
@@ -312,7 +314,7 @@ void StartPID_Serial_InputTask(void* argument)
         return;
       }
 
-      servo.SetPIDValues(message.Identifier,message.Value);
+    //Set // servo.SetPIDValues(message.Identifier,message.Value);
     }
     osDelay(500);
   }

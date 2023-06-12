@@ -7,11 +7,8 @@
 class Servo
 {
     private:
-    Timer ServoSpeedTimer = {TIM2};
-    Timer ServoPositionTimer = {TIM3};
-
-    Pin InputPin;
-    Pin OutputPin;
+    Timer positionTimer = {TIM3};
+    Timer speedTimer = {TIM2};
 
     int currentAngle;
     int desiredAngle;
@@ -26,7 +23,7 @@ class Servo
     int PositionToAngle(int position);
     public:
 
-    Servo(Pin input, Pin Output);
+    Servo();
     ~Servo() = default;
 
     /// @brief PID Function
