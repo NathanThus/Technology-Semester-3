@@ -2,7 +2,7 @@
 
 // SETTINGS
 
-#define BAUDRATE 300
+#define BAUDRATE 9600
 #define INPUT_PIN 2
 
 // Define a set of prescalers & Compare Registers, equivelant to thrice the baud rate for each baud rate
@@ -33,7 +33,7 @@ enum State
 
 constexpr long numberOfSamples = 3;
 constexpr long MicroSecondsPerSecond = 1000000;
-constexpr long SampleTime = (MicroSecondsPerSecond / BAUDRATE) / numberOfSamples;
+const unsigned long SampleTime = (MicroSecondsPerSecond / BAUDRATE) / numberOfSamples;
 constexpr int RequiredSampleThreshold =  (numberOfSamples / 2) + 1;
 
 constexpr int numberOfDataBits = 8;
@@ -41,13 +41,14 @@ constexpr int numberOfStopBits = 1;
 constexpr int numberOfParityBits = 0;
 constexpr int numberOfStartBits = 1;
 constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
+constexpr int BitsToSample = numberOfBits * numberOfSamples;
 
 unsigned long nextBitTime = 0;
 
 int exportByte = 0;
 
-int Bits[numberOfBits];
-int SampleBits[numberOfSamples * numberOfBits];
+int Bits[numberOfBits] = {0};
+int SampleBits[numberOfSamples * numberOfBits] = {0};
 int sampleCount = 0;
 bool correctParity = false; //TODO Optimise the everloving .... out of this
 
@@ -58,7 +59,7 @@ Event newEvent = NONE;
 
 void setup()
 {
-    pinMode(INPUT_PIN, INPUT); //TODO: Remove magic number
+    pinMode(INPUT_PIN, INPUT); 
     pinMode(13, OUTPUT);
     Serial.begin(BAUDRATE);
 }
@@ -70,22 +71,17 @@ int CheckForStartBit()
     return !(PIND & 0b00000100);
 }
 
-int ReadBit()
-{
-    return (PIND & 0b00000100);
-}
-
-
 void SampleByte()
 {
-  for (int i = 0; i < numberOfSamples * numberOfBits; i++)
-  {
-    while(micros() < nextBitTime)
+    for (int i = 0; i < BitsToSample; i++)
     {
+        while (micros() < nextBitTime)
+        {
+        }
+        nextBitTime = micros() + SampleTime;
+        SampleBits[i] = PIND & 0b00000100;
     }
-    nextBitTime = micros() + SampleTime;
-    SampleBits[i] = ReadBit();
-  }
+    // TIMING ISSUE
 
     for (int i = 0; i < numberOfBits; i++)
     {
@@ -163,7 +159,7 @@ void ValidateByte()
 
     for (int i = 1; i < numberOfDataBits; i++) // FINALLY EXPORT THE BYTE
     {
-        exportByte += Bits[i] << i - 1;
+        exportByte += Bits[i] << (i - 1);
     }
 
 }
@@ -177,11 +173,20 @@ void StartBitFound()
 /// ================= STATE MACHINE ================= ///
 #pragma region State Machine
 // Need functions for all states
+
+void Handle_ReadBit(Event ev)
+{
+    SampleByte();
+    currentState = BYTE_VALIDATION;
+    return;
+}
+
 void Handle_Idle(Event ev)
 {
     if(CheckForStartBit())
     {
         StartBitFound();
+        currentState = READ_BIT;
         return;
     }
 
@@ -200,17 +205,10 @@ void Handle_Idle(Event ev)
 void Handle_ReportData(Event ev)
 {
     Serial.println();
-    Serial.print("From Reciever: ");
-    Serial.println(exportByte);
+    Serial.print("Echo: ");
+    Serial.println((char)exportByte);
     Reset();
     currentState = IDLE;
-}
-
-void Handle_ReadBit(Event ev)
-{
-    SampleByte();
-    currentState = BYTE_VALIDATION;
-    return;
 }
 
 void Handle_ByteValidation(Event ev)
