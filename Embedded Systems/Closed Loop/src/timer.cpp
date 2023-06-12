@@ -149,3 +149,8 @@ void Timer::SetOutput(int value)
 {
     timer->CCR1 = value;
 }
+
+int Timer::GetData()
+{
+    return timer->CCR2;
+}

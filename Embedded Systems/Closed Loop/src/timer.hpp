@@ -134,6 +134,10 @@ class Timer
     /// @param value The value to set.
     void SetOutput(int value);
 
+    /// @brief Gets the input for the timer. 
+    /// @return The input value.
+    int GetData();
+
     private:
     TIM_TypeDef* timer;
 

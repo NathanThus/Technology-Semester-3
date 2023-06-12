@@ -10,6 +10,9 @@
 
 #define ALTERNATE_FUNCTION_1 1
 
+
+//TODO: If I have time, I should take a look at implementing the pins again.
+// Working > Pretty
 Servo::Servo(Pin input, Pin Output) : InputPin(input), OutputPin(Output)
 {
     currentAngle = 0;
@@ -17,21 +20,21 @@ Servo::Servo(Pin input, Pin Output) : InputPin(input), OutputPin(Output)
     integral = 0;
     previousError = 0;
 
-    // Set Analog Output Pin
-    OutputPin.SetType(PinType::PINTYPE_Alternate); // Set Alternate Mode
-    OutputPin.SetAlternateFunction(ALTERNATE_FUNCTION_1); // Set Alternate Function for TIM2 CC1
     // Set Analog Input Pin
-    InputPin.SetType(PinType::PINTYPE_Alternate); // Set Alternate Mode
-    InputPin.SetAlternateFunction(ALTERNATE_FUNCTION_1); // Set Alternate Function for TIM3 CC1
-
-    // Set Output Timer
-    BasicTimerPackage outputTimerPackage = {DEFAULT_OUTPUT_PRESCALER, DEFAULT_PRESCALER, TIMER2};
-    PWMOutputPackage PWMOutputPackage = {outputTimerPackage, OUTPUT_CHANNEL, CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, DUTY_CYCLE}; // Data is from the datasheet
-    OutputTimer.EnableAsPWMOutput(PWMOutputPackage);
+    GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos); // PIN D5
     // Set Input Timer
     BasicTimerPackage inputTimerPackage = {DEFAULT_INPUT_PRESCALER, DEFAULT_PRESCALER, TIMER3};
     PWMInputPackage PWMInputPackage = {inputTimerPackage, INPUT_CHANNEL, CC_ChannelType::CC_CHANNELTYPE_PWMInput}; // Data is from the datasheet
     InputTimer.EnableAsPWMInput(PWMInputPackage);
+
+    // Set Analog Output Pin
+    GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER10) | (0b10 << GPIO_MODER_MODER10_Pos);
+    GPIOB->AFR[1] = (GPIOB->AFR[1] & ~GPIO_AFRH_AFRH2) | (0B0010 << GPIO_AFRH_AFRH2_Pos); // PIN D6
+    // Set Output Timer
+    BasicTimerPackage outputTimerPackage = {DEFAULT_OUTPUT_PRESCALER, DEFAULT_PRESCALER, TIMER2};
+    PWMOutputPackage PWMOutputPackage = {outputTimerPackage, OUTPUT_CHANNEL, CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, DUTY_CYCLE}; // Data is from the datasheet
+    OutputTimer.EnableAsPWMOutput(PWMOutputPackage);
 }
 
 void Servo::SetPIDValues(char component, int value)
@@ -66,10 +69,19 @@ void Servo::SetAngle(int angle)
     derivative = error - previousError;
     previousError = error;
     int power = (error * kPropotional) + (integral * kIntegral) + (derivative * kDerivative);
-    OutputTimer.SetOutput(power);
+}
+
+void SetSpeed(int speed)
+{
+    TIM2->CCR3 = speed;
+}
+
+int Servo::GetPosition()
+{
+    return TIM3->CCR1;
 }
 
 int Servo::PositionToAngle(int position)
 {
-    return position * 360 / 1024;
+    return position * 360 / 1024; // Basic Clamp
 }

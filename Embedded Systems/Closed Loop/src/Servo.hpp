@@ -34,7 +34,7 @@ class Servo
     void SetAngle(int angle);
 
     /// @brief Get the current position of the servo
-    void GetPosition();
+    int GetPosition();
 
     /// @brief Set the PID values
     /// @param component The component to set
