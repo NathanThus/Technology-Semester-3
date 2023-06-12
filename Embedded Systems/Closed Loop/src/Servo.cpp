@@ -26,7 +26,7 @@ Servo::Servo(Pin input, Pin Output) : InputPin(input), OutputPin(Output)
     // Set Input Timer
     BasicTimerPackage inputTimerPackage = {DEFAULT_INPUT_PRESCALER, DEFAULT_PRESCALER, TIMER3};
     PWMInputPackage PWMInputPackage = {inputTimerPackage, INPUT_CHANNEL, CC_ChannelType::CC_CHANNELTYPE_PWMInput}; // Data is from the datasheet
-    InputTimer.EnableAsPWMInput(PWMInputPackage);
+    ServoPositionTimer.EnableAsPWMInput(PWMInputPackage);
 
     // Set Analog Output Pin
     GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER10) | (0b10 << GPIO_MODER_MODER10_Pos);
@@ -34,7 +34,7 @@ Servo::Servo(Pin input, Pin Output) : InputPin(input), OutputPin(Output)
     // Set Output Timer
     BasicTimerPackage outputTimerPackage = {DEFAULT_OUTPUT_PRESCALER, DEFAULT_PRESCALER, TIMER2};
     PWMOutputPackage PWMOutputPackage = {outputTimerPackage, OUTPUT_CHANNEL, CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, DUTY_CYCLE}; // Data is from the datasheet
-    OutputTimer.EnableAsPWMOutput(PWMOutputPackage);
+    ServoSpeedTimer.EnableAsPWMOutput(PWMOutputPackage);
 }
 
 void Servo::SetPIDValues(char component, int value)
@@ -55,9 +55,14 @@ void Servo::SetPIDValues(char component, int value)
     }
 }
 
+void SetSpeed(int speed)
+{
+    TIM2->CCR3 = speed;
+}
+
 void Servo::SetAngle(int angle)
 {
-    int error = angle - PositionToAngle(InputTimer.GetCounter());
+    int error = angle - PositionToAngle(ServoPositionTimer.GetCounter());
     integral += error;
     int derivative = error - previousError;
 
@@ -69,16 +74,12 @@ void Servo::SetAngle(int angle)
     derivative = error - previousError;
     previousError = error;
     int power = (error * kPropotional) + (integral * kIntegral) + (derivative * kDerivative);
-}
-
-void SetSpeed(int speed)
-{
-    TIM2->CCR3 = speed;
+    SetSpeed(power);
 }
 
 int Servo::GetPosition()
 {
-    return TIM3->CCR1;
+    return -1;
 }
 
 int Servo::PositionToAngle(int position)

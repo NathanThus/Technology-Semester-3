@@ -7,8 +7,8 @@
 class Servo
 {
     private:
-    Timer OutputTimer = {TIM2};
-    Timer InputTimer = {TIM3};
+    Timer ServoSpeedTimer = {TIM2};
+    Timer ServoPositionTimer = {TIM3};
 
     Pin InputPin;
     Pin OutputPin;

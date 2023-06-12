@@ -99,24 +99,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  HAL_ADCEx_Calibration_Start(&hadc1,);
-
   osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
   MX_FREERTOS_Init();
   osKernelStart(); /* Start scheduler */
 
-  //TODO: Remove. This code will not be used in the final product.
-  // const int MSGBUFSIZE = 80;
-  // char msgBuf[MSGBUFSIZE];
-
   while (1)
   {
-    //TODO: Remove. This code will not be used in the final product.
-	  // HAL_ADC_Start(&hadc1);
-	  // HAL_ADC_PollForConversion(&hadc1, 1);
-	  // int tempVal = HAL_ADC_GetValue(&hadc1);
-	  // snprintf(msgBuf, MSGBUFSIZE, "%d\n", tempVal);
-	  // HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
   }
   /* USER CODE END 3 */
 }
