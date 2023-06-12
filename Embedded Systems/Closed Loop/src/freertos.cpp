@@ -230,17 +230,33 @@ void StartSerialTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+  char rxChar = ' ';
   const int bufferSize = 20;
-  char buffer[bufferSize] = {' '};
+  char valueBuffer[bufferSize];
+  char sendBuffer[bufferSize];
+  int index = 0;
+
+  char PID_Indicator = ' ';
+  
   for (;;)
   {
-    snprintf(buffer, 100, "Position: %d\n", servo.GetPosition());
-    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, strlen(buffer), Max_Timeout);
-    if(HAL_UART_Receive(&huart2, (uint8_t *)buffer, bufferSize, Max_Timeout) == HAL_OK) // Fucks my shit
+    snprintf(sendBuffer, 20, "Position: %d\n", servo.GetPosition());
+    HAL_UART_Transmit(&huart2, (uint8_t *)sendBuffer, strlen(sendBuffer), Max_Timeout);
+    while(HAL_UART_Receive(&huart2, (uint8_t *)rxChar, 1, 0) == HAL_OK)
     {
-      Queue_Message newMessage = {buffer[0], atoi(buffer + 1)};
+      if((rxChar < 58 && rxChar > 46))
+      {
+        valueBuffer[index] += rxChar;
+      }
+      else
+      {
+        PID_Indicator = rxChar;
+      }
+
+      Queue_Message newMessage = {PID_Indicator, atoi(valueBuffer)};
       osMessageQueuePut(MessageQueue,&newMessage,NULL,osWaitForever);
     }
+
     watchDog.Feed();
     osDelay(100);
   }
