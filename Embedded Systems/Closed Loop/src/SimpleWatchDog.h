@@ -40,5 +40,4 @@ class SimpleWatchDog
         unsigned long timeout;
 };
 
-
 #endif // SIMPLEWATCHDOG_H
