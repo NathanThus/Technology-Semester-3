@@ -48,7 +48,11 @@ constexpr int Max_Timeout = 100;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+enum LastDirection
+{
+  ClockWise = 1,
+  Counter_ClockWise = -1
+};
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -62,6 +66,10 @@ Pin OutputPin = {GPIOB, 10};
 Pin InputPin = {GPIOB, 4};
 
 Servo servo(InputPin, OutputPin);
+
+int LightIntensity;
+int previousLightIntensity;
+LastDirection lastDirection;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -90,6 +98,18 @@ const osThreadAttr_t ServoTask_Attributes = {
     .tz_module = 0,
     .reserved = 0};
 
+    osThreadId_t ADCTaskHandle;
+const osThreadAttr_t ServoTask_Attributes = {
+    .name = "ADCTask",
+    .attr_bits = osThreadDetached,
+    .cb_mem = NULL,
+    .cb_size = 0,
+    .stack_mem = NULL,
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
+    .tz_module = 0,
+    .reserved = 0};
+
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,6 +119,8 @@ const osThreadAttr_t ServoTask_Attributes = {
 
 void StartSerialTask(void *argument);
 void StartServoTask(void *argument);
+void StartADCTask(void *argument);
+
 static void MX_ADC1_Init(void);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -115,6 +137,7 @@ void MX_FREERTOS_Init(void)
   watchDog.SetTimeout(IWDG_RLR_SECOND * 2);
   /* USER CODE END Init */
   MX_ADC1_Init();
+  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -136,7 +159,7 @@ void MX_FREERTOS_Init(void)
   /* creation of defaultTask */
   SerialTaskHandle = osThreadNew(StartSerialTask, NULL, &SerialTask_Attributes);
   ServoTaskHandle = osThreadNew(StartServoTask, NULL, &ServoTask_Attributes);
-
+  ADCTaskHandle = osThreadNew(StartADCTask, NULL, &ADCTask_Attributes);
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -145,6 +168,7 @@ void MX_FREERTOS_Init(void)
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
   watchDog.Start();
+  // Enable LED 2
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -157,7 +181,7 @@ void MX_FREERTOS_Init(void)
 
 void StartSerialTask(void *argument)
 {
-
+  // Toggle Onboard LED 2
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   const int bufferSize = 20;
@@ -181,22 +205,52 @@ void StartServoTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+  for (;;)
+  {
+    if(previousLightIntensity > LightIntensity)
+    {
+      // Light is getting brighter
+    }
+    else if (previousLightIntensity < LightIntensity)
+    {
+      // Light is getting darker
+      
+    }
+    servo.SetAngle(DesiredAngle);
+    osDelay(100);
+  }
+  /* USER CODE END StartDefaultTask */
+}
+
+void StartADCTask(void *argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
+  /* Infinite loop */
   HAL_ADC_Start(&hadc1);
   HAL_ADC_PollForConversion(&hadc1, 1);
   for (;;)
   {
-    //TODO: Need to add the logic to determine angle.
-    
-    int DesiredAngle = HAL_ADC_GetValue(&hadc1);
-    
-    servo.SetAngle(DesiredAngle);
-    osDelay(10);
+    previousLightIntensity = LightIntensity;
+    LightIntensity = HAL_ADC_GetValue(&hadc1);
+    osDelay(50);
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+
+void SwitchDirection()
+{
+  if(lastDirection == Direction::Clockwise)
+  {
+    lastDirection = Direction::CounterClockwise;
+  }
+  else
+  {
+    lastDirection = Direction::Clockwise;
+  }
+}
 
 /**
   * @brief ADC1 Initialization Function
