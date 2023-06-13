@@ -31,7 +31,7 @@ enum State
     ADD_TO_BUFFER
 };
 
-constexpr long numberOfSamples = 3;
+constexpr long numberOfSamples = 1;
 constexpr long MicroSecondsPerSecond = 1000000;
 const unsigned long SampleTime = (MicroSecondsPerSecond / BAUDRATE) / numberOfSamples;
 constexpr int RequiredSampleThreshold =  (numberOfSamples / 2) + 1;
@@ -78,8 +78,8 @@ void SampleByte()
         while (micros() < nextBitTime)
         {
         }
-        nextBitTime = micros() + SampleTime;
         SampleBits[i] = PIND & 0b00000100;
+        nextBitTime = micros() + SampleTime;
     }
     // TIMING ISSUE
 
@@ -166,7 +166,7 @@ void ValidateByte()
 
 void StartBitFound()
 {
-    startTime = micros();
+    startTime = 0;
     currentState = READ_BIT;
 }
 #pragma endregion
