@@ -26,6 +26,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <cstdlib>
+#include "usart.h"
+#include "gpio.h"
+#include <string.h>
 
 #include "Pin.hpp"
 #include "Servo.hpp"
@@ -54,6 +57,8 @@ struct Queue_Message
 constexpr uint32_t QueueSize = 10;
 
 osMessageQueueId_t MessageQueue;
+
+Servo servo;
 
 /* USER CODE END PD */
 
@@ -238,10 +243,10 @@ void StartSerialTask(void *argument)
   
   for (;;)
   {
-    osMutexAcquire(LightIntensityMutex,osWaitForever);
-    snprintf(sendBuffer, 20, "Position: %d\n", TIM3->CCR3); //servo.GetPosition());
+    snprintf(sendBuffer, 20, "Position: %d\n", servo.GetPosition()); //servo.GetPosition());
+    // osMutexAcquire(LightIntensityMutex,osWaitForever);
     // snprintf(sendBuffer, 20, "Light: %d\n", LightIntensity); //servo.GetPosition());
-    osMutexRelease(LightIntensityMutex);
+    // osMutexRelease(LightIntensityMutex);
     HAL_UART_Transmit(&huart2, (uint8_t *)sendBuffer, strlen(sendBuffer), Max_Timeout);
 
     while(HAL_UART_Receive(&huart2, (uint8_t *)rxChar, 1, 0) == HAL_OK)

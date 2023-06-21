@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os2.h"
+#include "timer.hpp"
 #include <string.h>
 #include <stdio.h>
 
@@ -99,12 +100,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
-  osKernelStart(); /* Start scheduler */
+  // osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
+  // MX_FREERTOS_Init();
+  // osKernelStart(); /* Start scheduler */
+  Timer timer = {TIM3};
+
+  const int MSGBUFSIZE = 80;
+  char msgBuf[MSGBUFSIZE];
+  snprintf(msgBuf, MSGBUFSIZE, "%s", "Hello World!\r\n");
+  HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+
+  BasicTimerPackage timerPackage = {72, 200, TIMER3};
+  PWMInputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMInput};
+  timer.EnableAsPWMInput(PWMPackage);
+
+  GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+  GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
 
   while (1)
   {
+    /* USER CODE END WHILE */
+    snprintf(msgBuf, MSGBUFSIZE, "%d\n", (int)TIM3->CCR2);
+    HAL_UART_Transmit(&huart2, (uint8_t *)msgBuf, strlen(msgBuf), HAL_MAX_DELAY);
+    HAL_Delay(20);
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }

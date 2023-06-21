@@ -17,16 +17,12 @@ Servo::Servo()
     integral = 0;
     previousError = 0;
 
-    GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (ALTERNATE_FUNCTION_1 << GPIO_MODER_MODER4_Pos);
-    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (ALTERNATE_FUNCTION_1 << GPIO_AFRL_AFRL4_Pos);
-
     BasicTimerPackage timerPackage = {72, 200, TIMER3};
     PWMInputPackage PWMPackage = {timerPackage, 1, CC_ChannelType::CC_CHANNELTYPE_PWMInput};
     positionTimer.EnableAsPWMInput(PWMPackage);
 
-    timerPackage = {7200, 200, TIMER2};
-    PWMOutputPackage outputPackage = {timerPackage, 1, CC_CHANNELTYPE_PWMOutput, OCM_Type::OCM_TYPE_PWM1, 1280};
-    speedTimer.EnableAsPWMOutput(outputPackage);
+    GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
+    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
 
     // GPIOB->MODER = (GPIOB->MODER & ~GPIO_MODER_MODER4) | (0b10 << GPIO_MODER_MODER4_Pos);
     // GPIOB->AFR[0] = (GPIOB->AFR[0] & ~GPIO_AFRL_AFRL4) | (0B0010 << GPIO_AFRL_AFRL4_Pos);
