@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 // SETTINGS
-
 #define BAUDRATE 9600
 #define INPUT_PIN 2
 
@@ -112,7 +111,7 @@ void Reset()
 
 bool CheckParity(int parityData)
 {
-    // correctParity = (parityData % 2 == PARITY_BIT); // TODO: Fix this
+    correctParity = (parityData % 2 == PARITY_BIT);
 
     if(!correctParity)
     {
