@@ -4,6 +4,7 @@
 #define STARTBIT 0
 #define STOPBIT 1
 #define OUTPUT_PIN 2
+#define ODD_PARITY
 
 constexpr long MicroSecondsPerSecond = 1000000;
 constexpr long TimePerBit = MicroSecondsPerSecond / BAUDRATE;
@@ -15,16 +16,11 @@ constexpr int numberOfStartBits = 1;
 constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(BAUDRATE);
   pinMode(OUTPUT_PIN, OUTPUT);
 }
 
 void loop() {
-  // if(!Serial.available())
-  // {
-  //   return;
-  // }
 
   char inboundByte = 'a';
 
@@ -42,6 +38,20 @@ void loop() {
   if(numberOfParityBits > 0)
   {
     // Insert parity
+    
+    for (int i = numberOfStartBits; i < numberOfDataBits; i++)
+    {
+      partiyBit += exportByte[i];
+    }
+    
+    #ifdef EVEN_PARITY
+    partiyBit = partiyBit % 2;
+    #endif
+
+    #ifdef ODD_PARITY
+    partiyBit = (partiyBit % 2) + 1;
+    #endif
+
     for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
     {
       exportByte[numberOfDataBits + i] = partiyBit;
