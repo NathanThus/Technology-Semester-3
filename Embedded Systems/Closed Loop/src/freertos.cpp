@@ -169,7 +169,7 @@ void MX_FREERTOS_Init(void)
 {
   /* USER CODE BEGIN Init */
   watchDog.SetPrescaler(PSC_256);
-  watchDog.SetTimeout(1000);
+  watchDog.SetTimeout(5);
   /* USER CODE END Init */
   MX_ADC1_Init();
 
