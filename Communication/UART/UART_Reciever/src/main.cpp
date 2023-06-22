@@ -3,6 +3,7 @@
 // SETTINGS
 #define BAUDRATE 9600
 #define INPUT_PIN 2
+#define PARITY_BIT 0
 
 // Define a set of prescalers & Compare Registers, equivelant to thrice the baud rate for each baud rate
 // DEBUG
