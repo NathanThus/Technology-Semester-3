@@ -21,8 +21,12 @@ void setup() {
 }
 
 void loop() {
+  if(Serial.available() == 0)
+  {
+    return;
+  }
 
-  char inboundByte = 'a';
+  char inboundByte = Serial.read();
 
   int exportByte[numberOfBits] = {0};
   int partiyBit = 0;
