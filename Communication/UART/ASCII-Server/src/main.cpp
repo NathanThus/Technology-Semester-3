@@ -6,10 +6,15 @@
 
 // #define UART
 
+#ifdef UART
+#include "UART.hpp"
+UART uart(BAUDRATE, INPUT_PIN);
+#endif
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  Serial.println("Starting transmitter");
+  Serial.println("Starting ASCII Server");
 }
 
 enum MenuChoices
@@ -24,8 +29,12 @@ void PrintDigital()
   for(int i = MIN_DIGITAL_PINS; i < MAX_DIGITAL_PINS; i++)
   {
     #ifdef UART
-
-    #endif
+    uart.Send('D');
+    uart.Send('I');
+    uart.Send(i);
+    uart.Send(':');
+    uart.Send(digitalRead(i));
+    uart.Send('\n');
     #else
       Serial.print("DI");
       Serial.print(i);
@@ -40,7 +49,11 @@ void PrintAnalog()
   for(int i = 0; i < MAX_ANALOG_PINS; i++)
   {
     #ifdef UART
-    #endif
+    uart.Send('A');
+    uart.Send(i);
+    uart.Send(':');
+    uart.Send(analogRead(i));
+    uart.Send('\n');
     #else
       Serial.print("A");
       Serial.print(i);
