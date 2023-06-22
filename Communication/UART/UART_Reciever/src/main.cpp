@@ -49,7 +49,7 @@ int exportByte = 0;
 int Bits[numberOfBits] = {0};
 int SampleBits[numberOfSamples * numberOfBits] = {0};
 int sampleCount = 0;
-bool correctParity = false; //TODO Optimise the everloving .... out of this
+bool correctParity = false;
 
 unsigned long startTime = 0;
 
@@ -80,7 +80,6 @@ void SampleByte()
         SampleBits[i] = PIND & 0b00000100;
         nextBitTime = micros() + SampleTime;
     }
-    // TIMING ISSUE
 
     for (int i = 0; i < numberOfBits; i++)
     {
