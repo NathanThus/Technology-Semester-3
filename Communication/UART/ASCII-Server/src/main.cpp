@@ -4,6 +4,8 @@
 #define MIN_DIGITAL_PINS 8
 #define MAX_ANALOG_PINS 5
 
+// #define UART
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -21,10 +23,15 @@ void PrintDigital()
 {
   for(int i = MIN_DIGITAL_PINS; i < MAX_DIGITAL_PINS; i++)
   {
-    Serial.print("DI");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.println(digitalRead(i));
+    #ifdef UART
+
+    #endif
+    #else
+      Serial.print("DI");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.println(digitalRead(i));
+    #endif
   }
 }
 
@@ -32,10 +39,14 @@ void PrintAnalog()
 {
   for(int i = 0; i < MAX_ANALOG_PINS; i++)
   {
-    Serial.print("A");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.println(analogRead(i));
+    #ifdef UART
+    #endif
+    #else
+      Serial.print("A");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.println(analogRead(i));
+    #endif
   }
 }
 
