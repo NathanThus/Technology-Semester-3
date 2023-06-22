@@ -1,7 +1,5 @@
 #include "timer.hpp"
 
-#include "timer.hpp"
-
 Timer::Timer(TIM_TypeDef *timer)
 {
     this->timer = timer;
@@ -38,7 +36,7 @@ void Timer::EnableAsPWMOutput(PWMOutputPackage package)
     Enable();
 }
 
-void Timer::EnableAsPWMInput(BasicTimerPackage package)
+void Timer::EnableAsPWMInput(PWMInputPackage package)
 {
     ToggleClock(package.bit);
     SetPrescaler(package.prescaler);
@@ -142,17 +140,7 @@ void Timer::ResetInterrupt()
     timer->SR &= ~TIM_SR_UIF;
 }
 
-void Timer::SendPWMSignal(int signal)
-{
-    timer->CCR1 = signal;
-}
-
 void Timer::Enable()
 {
     timer->CR1 |= TIM_CR1_CEN;
-}
-
-int Timer::GetPWMInput()
-{
-    return timer->CCR2;
 }
