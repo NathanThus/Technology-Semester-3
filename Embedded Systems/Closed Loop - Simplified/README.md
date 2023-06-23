@@ -4,6 +4,12 @@
 
 For this final assignment, the intention is to create a closed loop system using the various principles learned during the semester. The system will be inspired by a demo used by the technology department during one of their presentations, namely a system that uses a Light dependant resistor and servo to optimize lightfall into a solar panel.
 
+For the purposes of this project, the aim is to control the position of the servo, by adjusting the speed. The servo can be set to rotate at a certain speed. By carefully controlling the speed, as well as keeping the timing under control, it should be possible to control the position of the servo by adjusting the speed as it gets closer to the target position. Below is a well crafted image showcasing the concept.
+
+Putting the servo at an angle would allow us to consider the position as an angle. We can wiggle the LDR around to see which direction gets more light. By heading in that direction by adjusting the speed and hence the position, we can get the servo to point in the angle of the most light.
+
+![Implemented Concept](./out/Highly_Advanced_Concept_LDR.png)
+
 ## ADC Troubles
 
 For the project, I would need to make use of the ADC converter on the STM32. This is a 12 bit converter, which means that it can convert a voltage between 0 and 3.3V into a value between 0 and 4095. This is a very high resolution, and should be more than enough for my purposes. I decided to implement the following code to activate the ADC, but it didn't seem to work.
@@ -25,7 +31,14 @@ When I got no output however, I was thoroughly confused. After doing some invest
 
 After integrating this, I copied over the ADC specific code, but It didn't seem to work in my project. After some discussing with Rene, it turned out that I had to add the ADC startup code to the `stm32fxx_hal_msp.c` file, from which I could then add the ADC to my project.
 
-Doing this, allowed me to get the ADC working, and I got the values I was expecting from the LDR. Shing a flashlight on the LDR, the value rose to nearby 4000, and when I covered it, the value dropped to 3000. This was a good sign, and I could now move on to the next step.
+Doing this, allowed me to get the ADC working, and I got the values I was expecting from the LDR. Below are the maximum and minimum values I got from the LDR.
+
+| Value | Voltage | Description |
+| ----- | ------- | ----------- |
+| 2849 | 2.2V | Minimum light detected |
+| 4027 | 3.2V | Maximum light detected |
+
+The main reason for not hitting the expected minimum value of roughly 0, is due to the ambient lighting in the room, which was not completely dark. Despite my best attempts to cover the LDR, I was unable to get the value to drop below 2849. More investigation into the matter might be required, but for the purposes of this project, this should be sufficient. This still leaves us with ample resolution to work with, as the difference between the minimum and maximum value is 1178. This is, coincidentally, higher than the resolution offered by an arduino, which is 1024.
 
 ### Timer Troubles
 
@@ -34,6 +47,10 @@ The next step was to get the timer working. I had some trouble with this, as I w
 ## Abandoning the Original Concept
 
 Sadly, due to time constraints, I was unable to get the original concept working. I had some trouble with the timer, and I was unable to get the servo to work. I decided to abandon the original concept, and instead focus on a simpler concept, namely a system that would guide a servo to a certain position using PID control. This would allow me to use a project with working timers, but no ADC.
+
+With this simplified version, my aim remains to control the position, by adjusting the speed of the servo.
+
+![Concept](./out/Highly_Advanced_Concept.png)
 
 ## Separating Tasks
 
@@ -45,6 +62,12 @@ For the simplified version of the project, I decided to separate the tasks into 
 | Servo | Handles the servo control |
 
 This would allow for accurate and timely reporting of the servo position, as well as allow for the servo to change speed in a timely fashion.
+
+The main way the servo task and serial task avoid interfering with each other, is by using a mutex to ensure that only one task can access the servo data at a time. This ensures that the data is not corrupted by the other task.
+
+This is done with the aptly named `ServoDataMutex`. This mutex is locked by either, and only released once the data has been read or written. Below is a rough indicator of how that could look.
+
+![Mutex Diagram](./Design/Mutex%20Explaination.png)
 
 ### Serial Task
 
@@ -92,7 +115,7 @@ Anytime I want to reset the watchdog to avoid the microcontroller resetting, I s
 
 In an ideal setting, I would have made this a class with it's own methods and machinations. However, due to the aforementioned time constraints, I wasn't able to design & implement a proper class. Instead, I decided to implement the PID control in the `freertos.cpp` file, as this would allow me to get the PID control working. I have made a quick design of what such an implementation would look like, even thoughn it is fairly bare bones.
 
-![PID Concept Class](./out/Design/PID%20Class%20Concept.png)
+![PID Concept Class](./Design/PID%20Class%20Concept.png)
 
 ### Proportional Control
 

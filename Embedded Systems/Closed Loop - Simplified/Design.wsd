@@ -29,3 +29,26 @@ end note
 
 
 @enduml
+
+@startuml Mutex Explaination
+
+Title Typical Mutex Interaction
+
+Entity ServoTask
+Entity Idle
+Entity SerialTask
+
+Idle -> ServoTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+ServoTask -> ServoTask: GetCurrentPosition()
+ServoTask -> Idle: osMutexRelease(ServoDataMutex)
+
+Idle -> SerialTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+SerialTask -> SerialTask: PrintCurrentPosition()
+SerialTask -> Idle: osMutexRelease(ServoDataMutex)
+
+Idle ->ServoTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+ServoTask -> ServoTask: MoveToPosition()
+ServoTask -> Idle: osMutexRelease(ServoDataMutex)
+
+
+@enduml
