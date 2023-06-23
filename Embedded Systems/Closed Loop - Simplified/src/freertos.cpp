@@ -145,10 +145,9 @@ void MX_FREERTOS_Init(void)
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-  // TODO: Uncomment this before sending it
-  // watchDog.SetPrescaler(WatchDogPrescaler::PSC_256);
-  // watchDog.SetTimeout(1); // One second timeout should be enough
-  // watchDog.Start();
+  watchDog.SetPrescaler(WatchDogPrescaler::PSC_256);
+  watchDog.SetTimeout(1); // One second timeout should be enough
+  watchDog.Start();
 }
 
 // Admittedly not the cleanest solution, but working > pretty, especially when you're on a deadline
@@ -290,7 +289,7 @@ void MoveCounterClockwise(int speed)
     TIM2->CCR1 = CounterClockWiseSpeed + speed;
 }
 
-void StopMoving() //TODO: Unused
+void StopMoving()
 {
     TIM2->CCR1 = 0;
 }
