@@ -139,6 +139,14 @@ While it can easily read any data via the serial port, it will be required to se
 
 The reciever is responsible for reading the bitstream, and converting it into a byte. The byte is then sent to the serial port, where it can be read by the user.
 
+The following images were made by attaching the reciever to a CH340G Serial to UART device, which allowed me to send data to the arduino via the designated reciever pin.
+
+![9600 Baud Proof](./Reciever_Pictures/9600_Proof.png)
+
+This proved that my 8n1 configuration worked, and later I tested for various other configurations, just like the transmitter.
+
+Due to the fact I send back data via serial (as the transmitting with correct timing was handled by another system), I had to get a bit creative with testing. The data was sent by the CH340, recieved by the arduino, and then sent back to the CH340 as well as an Analog Discovery 2. The Analog Discovery 2 was used to verify that the data was correct, and the CH340 was used to send the data back to the computer.
+
 ## Conclusion
 
 The project was a success, and I was able to program both the reciever and the transmitter to work together. The transmitter is able to send data at a baudrate of 9600, and the reciever is able to read the data at the same baudrate. The reciever is also able to read the data at a baudrate of 9600.
