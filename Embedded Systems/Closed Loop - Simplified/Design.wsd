@@ -1,0 +1,54 @@
+@startuml PID Class Concept
+Title PID Class Concept
+
+class PID_Controller
+{
+    -constexpr float Kp
+    -constexpr float Ki
+    -constexpr float Kd
+
+    -float integral
+    -float previous_error
+
+    +PID_Controller(Kp: float, Ki: float, Kd: float)
+    +void Target(int target)
+    +int PositionToAngle(int pos)
+    
+    -Move(int direction, int speed)
+}
+
+note left of PID_Controller::Ki
+Ideally, It'd be possible to 
+tune the PID constants via serial.
+end note
+
+note left of PID_Controller::Move
+The direction would assist in avoiding 
+the wrap around of the positional values
+end note
+
+
+@enduml
+
+@startuml Mutex Explaination
+
+Title Typical Mutex Interaction
+
+Entity ServoTask
+Entity Idle
+Entity SerialTask
+
+Idle -> ServoTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+ServoTask -> ServoTask: GetCurrentPosition()
+ServoTask -> Idle: osMutexRelease(ServoDataMutex)
+
+Idle -> SerialTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+SerialTask -> SerialTask: PrintCurrentPosition()
+SerialTask -> Idle: osMutexRelease(ServoDataMutex)
+
+Idle ->ServoTask: osMutexAcquire(ServoDataMutex, osWaitForever)
+ServoTask -> ServoTask: MoveToPosition()
+ServoTask -> Idle: osMutexRelease(ServoDataMutex)
+
+
+@enduml
