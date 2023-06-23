@@ -42,9 +42,9 @@ UART::UART(int baudrate, int inputpin, int outputpin)
     TimePerBit = MicroSecondsPerSecond / baudrate;
 }
 
-int CheckForStartBit()
+int UART::CheckForStartBit()
 {
-    return !(PIND & 0b00000100);
+    return !digitalRead(this->inputPin);
 }
 
 void UART::SampleByte()
@@ -55,8 +55,17 @@ void UART::SampleByte()
         {
         }
         SampleBits[i] = digitalRead(this->inputPin);
-        nextBitTime += SampleTime;
+        nextBitTime = micros() + SampleTime;
     }
+
+    // for (int i = 0; i < BitsToSample; i++)
+    // {
+    //     while (micros() < nextBitTime)
+    //     {
+    //     }
+    //     SampleBits[i] = PIND & 0b00000100;
+    //     nextBitTime = micros() + SampleTime;
+    // }
 
     for (int i = 0; i < numberOfBits; i++)
     {
@@ -203,7 +212,12 @@ void UART::Send(char data)
     digitalWrite(outputPin, outBoundData[i]);
   }
 
-  delay(10);
+  for (int i = 0; i < numberOfBits; i++)
+  {
+    outBoundData[i] = 0;
+  }
+  
+  delay(1);
 }
 
 void UART::Send(int data)

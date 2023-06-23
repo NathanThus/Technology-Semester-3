@@ -12,6 +12,7 @@ private:
     int outputPin;
 
 void SampleByte();
+int CheckForStartBit();
 
 public:
     UART(int baudRate, int inputPin, int outputPin);

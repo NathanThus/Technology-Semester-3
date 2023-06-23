@@ -21,7 +21,6 @@ void setup() {
   Serial.begin(BAUDRATE);
   // put your setup code here, to run once:
   #ifdef UART_
-  delay(100);
   PrintOptions();
   #endif
 }
@@ -39,8 +38,8 @@ void PrintDigital()
   {
     #ifdef UART_
       String data = "DI";
-      data.concat(i + ": " + digitalRead(i));
-      data.concat("\n");
+      data += String(i) + ": " + String(digitalRead(i));
+      data += "\n\r";
       uart.SendLine(data);
     #else
       Serial.print("DI");
@@ -57,8 +56,8 @@ void PrintAnalog()
   {
     #ifdef UART_
       String data = "A";
-      data.concat(i + ": " + analogRead(A0 + i));
-      data.concat("\n");
+      data += String(i) + ": " + String(analogRead(A0 + i));
+      data += "\n\r";
       uart.SendLine(data);
     #else
       Serial.print("A");
@@ -121,10 +120,7 @@ void loop() {
   #ifdef UART_
   if(uart.Recieve(data))
   {
-    Serial.println("");
-    Serial.print("DATA:");
-    Serial.println(data);
-    Menu((MenuChoices)data);
+    Menu((MenuChoices)data + 1);
   }
   #else
   if(Serial.available())
