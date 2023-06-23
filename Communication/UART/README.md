@@ -121,6 +121,8 @@ The transmitter is responsible for reading the data from the serial port, and co
 
 While it can easily read any data via the serial port, it will be required to send the data in a specific format. The format is specified when the program is uploaded, and consists of differing number of data & stop bits, as well as parity.
 
+<!-- TODO: Add more text? -->
+
 #### Proof
 
 ![300 Baud](Transmitter_Pictures/Baud_300_Receiver.png)
@@ -135,7 +137,7 @@ While it can easily read any data via the serial port, it will be required to se
 
 ![9600 Seven Data Bits](Transmitter_Pictures/Baud_9600_7Bit.png)
 
-### Reciever
+### Receiver
 
 The reciever is responsible for reading the bitstream, and converting it into a byte. The byte is then sent to the serial port, where it can be read by the user.
 
@@ -145,7 +147,10 @@ The following images were made by attaching the reciever to a CH340G Serial to U
 
 This proved that my 8n1 configuration worked, and later I tested for various other configurations, just like the transmitter.
 
+<!-- TODO: -->
 Due to the fact I send back data via serial (as the transmitting with correct timing was handled by another system), I had to get a bit creative with testing. The data was sent by the CH340, recieved by the arduino, and then sent back to the CH340 as well as an Analog Discovery 2. The Analog Discovery 2 was used to verify that the data was correct, and the CH340 was used to send the data back to the computer.
+
+<!-- TODO: Add more evidence -->
 
 ## Conclusion
 

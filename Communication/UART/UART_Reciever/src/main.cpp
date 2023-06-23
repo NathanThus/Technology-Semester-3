@@ -3,7 +3,7 @@
 // SETTINGS
 #define BAUDRATE 9600
 #define INPUT_PIN 2
-#define PARITY_BIT 0
+#define PARITY_BIT 1
 
 // Define a set of prescalers & Compare Registers, equivelant to thrice the baud rate for each baud rate
 // DEBUG
@@ -19,7 +19,6 @@ enum Event
     BYTE_VALIDATION_FAILED,
     BYTE_VALIDATION_PASSED,
     BYTE_ADDED_TO_BUFFER
-
 };
 
 enum State
@@ -38,7 +37,7 @@ constexpr int RequiredSampleThreshold =  (numberOfSamples / 2) + 1;
 
 constexpr int numberOfDataBits = 8;
 constexpr int numberOfStopBits = 1;
-constexpr int numberOfParityBits = 0;
+constexpr int numberOfParityBits = 1;
 constexpr int numberOfStartBits = 1;
 constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
 constexpr int BitsToSample = numberOfBits * numberOfSamples;

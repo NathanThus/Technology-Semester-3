@@ -3,18 +3,27 @@
 #define MAX_DIGITAL_PINS 13
 #define MIN_DIGITAL_PINS 8
 #define MAX_ANALOG_PINS 5
+#define BAUDRATE 9600
 
-// #define UART
+#define UART_
 
-#ifdef UART
+#ifdef UART_
+#define INPUT_PIN 2
+#define OUTPUT_PIN 3
+
 #include "UART.hpp"
-UART uart(BAUDRATE, INPUT_PIN);
+UART uart(BAUDRATE,INPUT_PIN,OUTPUT_PIN);
 #endif
 
+void PrintOptions();
+
 void setup() {
+  Serial.begin(BAUDRATE);
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("Starting ASCII Server");
+  #ifdef UART_
+  delay(100);
+  PrintOptions();
+  #endif
 }
 
 enum MenuChoices
@@ -28,13 +37,11 @@ void PrintDigital()
 {
   for(int i = MIN_DIGITAL_PINS; i < MAX_DIGITAL_PINS; i++)
   {
-    #ifdef UART
-    uart.Send('D');
-    uart.Send('I');
-    uart.Send(i);
-    uart.Send(':');
-    uart.Send(digitalRead(i));
-    uart.Send('\n');
+    #ifdef UART_
+      String data = "DI";
+      data.concat(i + ": " + digitalRead(i));
+      data.concat("\n");
+      uart.SendLine(data);
     #else
       Serial.print("DI");
       Serial.print(i);
@@ -48,24 +55,42 @@ void PrintAnalog()
 {
   for(int i = 0; i < MAX_ANALOG_PINS; i++)
   {
-    #ifdef UART
-    uart.Send('A');
-    uart.Send(i);
-    uart.Send(':');
-    uart.Send(analogRead(i));
-    uart.Send('\n');
+    #ifdef UART_
+      String data = "A";
+      data.concat(i + ": " + analogRead(A0 + i));
+      data.concat("\n");
+      uart.SendLine(data);
     #else
       Serial.print("A");
       Serial.print(i);
       Serial.print(": ");
-      Serial.println(analogRead(i));
+      Serial.println(analogRead(A0 + i));
     #endif
   }
 }
 
 void ClearScreen()
 {
-  Serial.println("Clearing");
+  #ifdef UART_
+    uart.SendLine("\e[2J\e[H");
+  #else
+    Serial.print("\e[2J\e[H");
+  #endif
+}
+
+void PrintOptions()
+{
+  #ifdef UART_
+    uart.SendLine("Options:\n\r");
+    uart.SendLine("d: Print Digital\n\r");
+    uart.SendLine("a: Print Analog\n\r");
+    uart.SendLine("c: Clear Screen\n\r");
+  #else
+    Serial.println("Options:");
+    Serial.println("d: Print Digital");
+    Serial.println("a: Print Analog");
+    Serial.println("c: Clear Screen");
+  #endif
 }
 
 void Menu(MenuChoices input)
@@ -84,12 +109,27 @@ void Menu(MenuChoices input)
   default:
     break;
   }
+  PrintOptions();
 } 
+
+#ifdef UART_
+char data;
+#endif
 
 void loop() {
   // put your main code here, to run repeatedly:
+  #ifdef UART_
+  if(uart.Recieve(data))
+  {
+    Serial.println("");
+    Serial.print("DATA:");
+    Serial.println(data);
+    Menu((MenuChoices)data);
+  }
+  #else
   if(Serial.available())
   {
     Menu((MenuChoices)Serial.read());
   }
+  #endif
 }

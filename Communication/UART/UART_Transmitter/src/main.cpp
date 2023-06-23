@@ -35,8 +35,7 @@ void loop() {
   
   for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
   {
-    exportByte[i] = inboundByte & 128;
-    inboundByte <<= 1;
+    exportByte[i] = (inboundByte >> (i - numberOfStartBits)) & 1;
   }
 
   if(numberOfParityBits > 0)
@@ -78,5 +77,11 @@ void loop() {
     nextBitTime = micros() + TimePerBit;
     digitalWrite(OUTPUT_PIN, exportByte[i]);
   }
+
+  for (size_t i = 0; i < numberOfBits; i++)
+  {
+    Serial.println(exportByte[i]);
+  }
+  
   delay(100);
 }

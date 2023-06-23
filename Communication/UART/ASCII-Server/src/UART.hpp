@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 class UART
 {
 private:
@@ -9,12 +11,15 @@ private:
     int inputPin;
     int outputPin;
 
+void SampleByte();
+
 public:
     UART(int baudRate, int inputPin, int outputPin);
 
     bool Recieve(char& data);
     void Send(char data);
     void Send(int data);
+    void SendLine(String string);
     void SetParity(int parity);
 
     ~UART() = default;

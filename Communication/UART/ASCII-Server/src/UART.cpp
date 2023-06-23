@@ -4,9 +4,9 @@
 #define STARTBIT 0
 #define STOPBIT 1
 
-constexpr long numberOfSamples = 1;
+constexpr int numberOfSamples = 1;
 constexpr long MicroSecondsPerSecond = 1000000;
-constexpr int RequiredSampleThreshold =  (numberOfSamples / 2) + 1;
+constexpr int RequiredSampleThreshold = (numberOfSamples / 2) + 1;
 unsigned long SampleTime = 0;
 unsigned long TimePerBit = 0;
 
@@ -29,7 +29,6 @@ bool correctParity = false;
 
 unsigned long startTime = 0;
 
-
 UART::UART(int baudrate, int inputpin, int outputpin)
 {
     this->baudRate = baudrate;
@@ -48,15 +47,15 @@ int CheckForStartBit()
     return !(PIND & 0b00000100);
 }
 
-void SampleByte()
+void UART::SampleByte()
 {
     for (int i = 0; i < BitsToSample; i++)
     {
         while (micros() < nextBitTime)
         {
         }
-        SampleBits[i] = PIND & 0b00000100;
-        nextBitTime = micros() + SampleTime;
+        SampleBits[i] = digitalRead(this->inputPin);
+        nextBitTime += SampleTime;
     }
 
     for (int i = 0; i < numberOfBits; i++)
@@ -129,7 +128,7 @@ void ValidateByte()
         CheckParity(parityData);
     }
 
-    for (int i = 1; i < numberOfDataBits; i++) // FINALLY EXPORT THE BYTE
+    for (int i = 1; i < numberOfDataBits; i++)
     {
         exportByte += Bits[i] << (i - 1);
     }
@@ -161,8 +160,7 @@ void UART::Send(char data)
   
   for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
   {
-    outBoundData[i] = data & 128;
-    data <<= 1;
+    outBoundData[i] = (data >> (i - numberOfStartBits)) & 1;
   }
 
   if(numberOfParityBits > 0)
@@ -201,14 +199,24 @@ void UART::Send(char data)
     while(micros() < nextBitTime)
     {
     }
-    nextBitTime = micros() + TimePerBit;
+    nextBitTime += TimePerBit;
     digitalWrite(outputPin, outBoundData[i]);
   }
+
+  delay(10);
 }
 
 void UART::Send(int data)
 {
     Send((char)data + '0');
+}
+
+void UART::SendLine(String string)
+{
+    for (size_t i = 0; i < string.length(); i++)
+    {
+        Send(string[i]);
+    }
 }
 
 void UART::SetParity(int parity)
