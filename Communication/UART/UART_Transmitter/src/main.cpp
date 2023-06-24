@@ -29,7 +29,7 @@ void loop() {
   char inboundByte = Serial.read();
 
   int exportByte[numberOfBits] = {0};
-  int partiyBit = 0;
+  int parityBit = 0;
 
   exportByte[0] = STARTBIT;
   
@@ -44,21 +44,17 @@ void loop() {
     
     for (int i = numberOfStartBits; i < numberOfDataBits; i++)
     {
-      partiyBit += exportByte[i];
+      parityBit += exportByte[i];
     }
     
-    #ifdef EVEN_PARITY
-    partiyBit = partiyBit % 2;
-    #endif
+    parityBit = parityBit % 2;
 
-    #ifdef ODD_PARITY
-    partiyBit = (partiyBit % 2) + 1;
-    #endif
-
-    for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
+    if(parityBit != REQUESTED_PARITY)
     {
-      exportByte[numberOfDataBits + i] = partiyBit;
+      parityBit += 1;
     }
+
+    exportByte[numberOfStartBits + numberOfDataBits] = parityBit;
   }
   
   // Needs a for loop to add the stop bits

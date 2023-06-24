@@ -3,9 +3,9 @@
 // SETTINGS
 #define BAUDRATE 9600
 #define INPUT_PIN 2
-#define PARITY_BIT 1
+#define REQUESTED_PARITY 1
 
-// Define a set of prescalers & Compare Registers, equivelant to thrice the baud rate for each baud rate
+// Define a set of prescalers & Compare Registers, equivalent to thrice the baud rate for each baud rate
 // DEBUG
 #define TOGGLE_LED PORTB ^= (1 << PORTB5)
 
@@ -110,19 +110,18 @@ void Reset()
 
 bool CheckParity(int parityData)
 {
-    correctParity = (parityData % 2 == PARITY_BIT);
-
-    if(!correctParity)
-    {
-        Reset();
-        currentState = IDLE;
-        return false;
-    }
-    else
-    {
-        currentState = ADD_TO_BUFFER;
-        return true;
-    }
+  //Bits[number of start bits + number of data bits] is the location of the parity bit
+  if(parityData + Bits[numberOfStartBits + numberOfDataBits] == REQUESTED_PARITY)
+  {
+    currentState = ADD_TO_BUFFER;
+    return true; 
+  }
+  else
+  {
+    Reset();
+    currentState = IDLE;
+    return false;
+  }
 }
 
 void ValidateByte()
@@ -154,6 +153,17 @@ void ValidateByte()
         }
         CheckParity(parityData);
     }
+
+    for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits; i++)
+    {
+        if(Bits[i] != 1)
+        {
+            Reset();
+            currentState = IDLE;
+            return;
+        }
+    }
+    
 
     for (int i = 1; i < numberOfDataBits; i++) // FINALLY EXPORT THE BYTE
     {

@@ -10,7 +10,7 @@ constexpr int RequiredSampleThreshold = (numberOfSamples / 2) + 1;
 unsigned long SampleTime = 0;
 unsigned long TimePerBit = 0;
 
-constexpr int numberOfDataBits = 8;
+constexpr int numberOfDataBits = 7;
 constexpr int numberOfStopBits = 1;
 constexpr int numberOfParityBits = 0;
 constexpr int numberOfStartBits = 1;
@@ -57,15 +57,6 @@ void UART::SampleByte()
         SampleBits[i] = digitalRead(this->inputPin);
         nextBitTime = micros() + SampleTime;
     }
-
-    // for (int i = 0; i < BitsToSample; i++)
-    // {
-    //     while (micros() < nextBitTime)
-    //     {
-    //     }
-    //     SampleBits[i] = PIND & 0b00000100;
-    //     nextBitTime = micros() + SampleTime;
-    // }
 
     for (int i = 0; i < numberOfBits; i++)
     {
@@ -163,7 +154,7 @@ bool UART::Recieve(char &data)
 void UART::Send(char data)
 {
   int outBoundData[numberOfBits] = {0};
-  int partiyBit = 0;
+  int parityBit = 0;
 
   outBoundData[0] = STARTBIT;
   
@@ -178,7 +169,7 @@ void UART::Send(char data)
     
     for (int i = numberOfStartBits; i < numberOfDataBits; i++)
     {
-      partiyBit += outBoundData[i];
+      parityBit += outBoundData[i];
     }
     
     #ifdef EVEN_PARITY
@@ -191,7 +182,7 @@ void UART::Send(char data)
 
     for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
     {
-      outBoundData[numberOfDataBits + i] = partiyBit;
+      outBoundData[numberOfDataBits + i] = parityBit;
     }
   }
   
