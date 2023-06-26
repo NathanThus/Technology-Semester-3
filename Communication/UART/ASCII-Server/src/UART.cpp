@@ -13,6 +13,8 @@
 #define REQUESTED_PARITY 0
 #endif
 
+#define TOGGLE_LED digitalWrite(13, !digitalRead(13))
+
 constexpr int numberOfSamples = 1;
 constexpr long MicroSecondsPerSecond = 1000000;
 constexpr int RequiredSampleThreshold = (numberOfSamples / 2) + 1;
@@ -33,7 +35,6 @@ int exportByte = -1;
 int Bits[numberOfBits] = {0};
 int SampleBits[numberOfSamples * numberOfBits] = {0};
 int sampleCount = 0;
-bool correctParity = false;
 
 unsigned long startTime = 0;
 
@@ -74,7 +75,6 @@ void UART::SampleByte()
         }
         Bits[i] = (Bits[i] >= RequiredSampleThreshold);
     }
-    
 }
 
 void Reset()
@@ -91,26 +91,12 @@ void Reset()
     }
     
     exportByte = -1;
-    correctParity = false;
 }
 
 bool CheckParity(int parityData)
 {
-    correctParity = ((parityData + Bits[numberOfStartBits + numberOfDataBits]) % 2  == REQUESTED_PARITY);
-
-    Serial.println("Data:");
-    for (size_t i = numberOfStartBits; i < numberOfDataBits; i++)
-    {
-        Serial.print(Bits[i]);
-    }
-    Serial.println();
-    Serial.print("Parity Bit: ");
-    Serial.println(Bits[numberOfStartBits + numberOfDataBits]);
-    
-    Serial.print("Is Valid: ");
-    Serial.println(((parityData + Bits[numberOfStartBits + numberOfParityBits + numberOfDataBits]) % 2  == REQUESTED_PARITY));
-
-    return correctParity;
+    TOGGLE_LED;
+    return ((parityData + Bits[numberOfStartBits + numberOfDataBits]) % 2  == REQUESTED_PARITY);
 }
 
 void ValidateByte()
@@ -140,11 +126,27 @@ void ValidateByte()
         }
     }
 
-    if(!CheckParity(parityData))
+    for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits; i++)
     {
-        Reset();
-        return;
+        if(Bits[i] != 1)
+        {
+            Reset();
+            Serial.print("Failed at: ");
+            Serial.println(i);
+            return;
+        }
     }
+    
+    if(numberOfParityBits > 0)
+    {
+        if(!CheckParity(parityData))
+        {
+            Reset();
+            return;
+        }
+    }
+
+    
 
     for (int i = numberOfStartBits; i < numberOfDataBits; i++)
     {
