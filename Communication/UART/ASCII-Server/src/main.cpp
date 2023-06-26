@@ -27,9 +27,9 @@ void setup() {
 
 enum MenuChoices
 {
-  Print_Digital = 'D',
-  Print_Analog = 'A',
-  Clear = 'C'
+  Print_Digital = 'd',
+  Print_Analog = 'a',
+  Clear = 'c'
 };
 
 void PrintDigital()
@@ -120,7 +120,8 @@ void loop() {
   #ifdef UART_
   if(uart.Recieve(data))
   {
-    Menu((MenuChoices)data + 1);
+    Serial.print(data);
+    Menu((MenuChoices)(data + 1));
   }
   #else
   if(Serial.available())
