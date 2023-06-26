@@ -27,9 +27,9 @@ void setup() {
 
 enum MenuChoices
 {
-  Print_Digital = 'd',
-  Print_Analog = 'a',
-  Clear = 'c'
+  Print_Digital = 'D',
+  Print_Analog = 'A',
+  Clear = 'C'
 };
 
 void PrintDigital()
@@ -81,14 +81,14 @@ void PrintOptions()
 {
   #ifdef UART_
     uart.SendLine("Options:\n\r");
-    uart.SendLine("d: Print Digital\n\r");
-    uart.SendLine("a: Print Analog\n\r");
-    uart.SendLine("c: Clear Screen\n\r");
+    uart.SendLine("D: Print Digital\n\r");
+    uart.SendLine("A: Print Analog\n\r");
+    uart.SendLine("C: Clear Screen\n\r");
   #else
     Serial.println("Options:");
-    Serial.println("d: Print Digital");
-    Serial.println("a: Print Analog");
-    Serial.println("c: Clear Screen");
+    Serial.println("D: Print Digital");
+    Serial.println("A: Print Analog");
+    Serial.println("C: Clear Screen");
   #endif
 }
 

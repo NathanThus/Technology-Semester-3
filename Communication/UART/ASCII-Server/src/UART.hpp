@@ -21,7 +21,6 @@ public:
     void Send(char data);
     void Send(int data);
     void SendLine(String string);
-    void SetParity(int parity);
 
     ~UART() = default;
 };
