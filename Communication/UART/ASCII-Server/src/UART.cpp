@@ -4,14 +4,23 @@
 #define STARTBIT 0
 #define STOPBIT 1
 
+#define EVEN_PARITY
+
+#ifdef ODD_PARITY
+#define REQUESTED_PARITY 1
+#endif
+#ifdef EVEN_PARITY
+#define REQUESTED_PARITY 0
+#endif
+
 constexpr int numberOfSamples = 1;
 constexpr long MicroSecondsPerSecond = 1000000;
 constexpr int RequiredSampleThreshold = (numberOfSamples / 2) + 1;
 unsigned long SampleTime = 0;
 unsigned long TimePerBit = 0;
 
-constexpr int numberOfDataBits = 7;
-constexpr int numberOfStopBits = 1;
+constexpr int numberOfDataBits = 8;
+constexpr int numberOfStopBits = 2;
 constexpr int numberOfParityBits = 0;
 constexpr int numberOfStartBits = 1;
 constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
@@ -20,7 +29,6 @@ constexpr int BitsToSample = numberOfBits * numberOfSamples;
 unsigned long nextBitTime = 0;
 
 int exportByte = -1;
-int requestedParity = 0;
 
 int Bits[numberOfBits] = {0};
 int SampleBits[numberOfSamples * numberOfBits] = {0};
@@ -66,6 +74,7 @@ void UART::SampleByte()
         }
         Bits[i] = (Bits[i] >= RequiredSampleThreshold);
     }
+    
 }
 
 void Reset()
@@ -87,17 +96,21 @@ void Reset()
 
 bool CheckParity(int parityData)
 {
-    correctParity = (parityData % 2 == requestedParity);
+    correctParity = ((parityData + Bits[numberOfStartBits + numberOfDataBits]) % 2  == REQUESTED_PARITY);
 
-    if(!correctParity)
+    Serial.println("Data:");
+    for (size_t i = numberOfStartBits; i < numberOfDataBits; i++)
     {
-        Reset();
-        return false;
+        Serial.print(Bits[i]);
     }
-    else
-    {
-        return true;
-    }
+    Serial.println();
+    Serial.print("Parity Bit: ");
+    Serial.println(Bits[numberOfStartBits + numberOfDataBits]);
+    
+    Serial.print("Is Valid: ");
+    Serial.println(((parityData + Bits[numberOfStartBits + numberOfParityBits + numberOfDataBits]) % 2  == REQUESTED_PARITY));
+
+    return correctParity;
 }
 
 void ValidateByte()
@@ -125,14 +138,20 @@ void ValidateByte()
         {
             parityData += Bits[i];
         }
-        CheckParity(parityData);
     }
 
-    for (int i = 1; i < numberOfDataBits; i++)
+    if(!CheckParity(parityData))
+    {
+        Reset();
+        return;
+    }
+
+    for (int i = numberOfStartBits; i < numberOfDataBits; i++)
     {
         exportByte += Bits[i] << (i - 1);
     }
 
+    Serial.println((char)exportByte);
 }
 
 bool UART::Recieve(char &data)
@@ -173,11 +192,11 @@ void UART::Send(char data)
     }
     
     #ifdef EVEN_PARITY
-    partiyBit = partiyBit % 2;
+    parityBit = parityBit % 2;
     #endif
 
     #ifdef ODD_PARITY
-    partiyBit = (partiyBit % 2) + 1;
+    parityBit = (parityBit % 2) + 1;
     #endif
 
     for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
@@ -222,9 +241,4 @@ void UART::SendLine(String string)
     {
         Send(string[i]);
     }
-}
-
-void UART::SetParity(int parity)
-{
-    requestedParity = parity;
 }
