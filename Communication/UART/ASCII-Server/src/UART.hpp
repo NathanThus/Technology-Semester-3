@@ -11,9 +11,6 @@ private:
     const unsigned long SampleTime = 0;
     const unsigned long TimePerBit = 0;
     
-    // Sampling
-    const int NumberOfSamples = 0;
-
     // Reciever
     void SampleByte();
     int CheckForStartBit();
@@ -28,6 +25,11 @@ private:
     int PreCalculateParityData();
 
     // Transmitter
+    void PrepareData(int data);
+    void SetStartBit();
+    void SetDataBits(int data);
+    void SetParityData(int parityData);
+    void SetStopBits();
 
 public:
     UART(int baudRate, int inputPin, int outputPin, int samples);

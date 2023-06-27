@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include "UART.hpp"
+#include <Arduino.h>
 
 #define MAX_DIGITAL_PINS 13
 #define MIN_DIGITAL_PINS 8
