@@ -13,158 +13,163 @@
 #define REQUESTED_PARITY 0
 #endif
 
-#define TOGGLE_LED digitalWrite(13, !digitalRead(13))
+// Timing
+const long MicroSecondsPerSecond = 1000000;
 
-constexpr int numberOfSamples = 1;
-constexpr long MicroSecondsPerSecond = 1000000;
-constexpr int RequiredSampleThreshold = (numberOfSamples / 2) + 1;
-unsigned long SampleTime = 0;
-unsigned long TimePerBit = 0;
+// Data Bits
+const int NumberOfDataBits = 8;
+const int NumberOfStopBits = 1;
+const int NumberOfParityBits = 0;
+const int NumberOfStartBits = 1;
 
-constexpr int numberOfDataBits = 8;
-constexpr int numberOfStopBits = 2;
-constexpr int numberOfParityBits = 0;
-constexpr int numberOfStartBits = 1;
-constexpr int numberOfBits = numberOfDataBits + numberOfStopBits + numberOfParityBits + numberOfStartBits;
-constexpr int BitsToSample = numberOfBits * numberOfSamples;
+const int NumberOfBits = NumberOfStartBits + NumberOfDataBits + NumberOfParityBits + NumberOfStopBits;
 
-unsigned long nextBitTime = 0;
+// Sampling
+const int NumberOfSamples = 1;
+const int BitsToSample = NumberOfBits * NumberOfSamples;
+const int RequiredSampleThreshold = (NumberOfSamples / 2) + 1;
 
-int exportByte = -1;
+// Required for data between function, unless I completely refactor with bit-shifting
+int Bits[NumberOfBits];
+int SampleBits[BitsToSample];
 
-int Bits[numberOfBits] = {0};
-int SampleBits[numberOfSamples * numberOfBits] = {0};
-int sampleCount = 0;
-
-unsigned long startTime = 0;
-
-UART::UART(int baudrate, int inputpin, int outputpin)
+UART::UART(int baudrate, int inputpin, int outputpin, int samples)
+    : SampleTime((MicroSecondsPerSecond / baudrate) / samples),
+      TimePerBit(MicroSecondsPerSecond / baudrate),
+      NumberOfSamples(samples),
+      BaudRate(baudrate),
+      InputPin(inputpin),
+      OutputPin(outputpin)
 {
-    this->baudRate = baudrate;
-    this->inputPin = inputpin;
-    this->outputPin = outputpin;
-
     pinMode(inputpin, INPUT);
     pinMode(outputpin, OUTPUT);
-
-    SampleTime = (MicroSecondsPerSecond / baudrate) / numberOfSamples;
-    TimePerBit = MicroSecondsPerSecond / baudrate;
 }
 
 int UART::CheckForStartBit()
 {
-    return !digitalRead(this->inputPin);
+    return !digitalRead(this->InputPin);
 }
 
 void UART::SampleByte()
 {
+    unsigned long nextBitTime = micros();
     for (int i = 0; i < BitsToSample; i++)
     {
         while (micros() < nextBitTime)
         {
         }
-        SampleBits[i] = digitalRead(this->inputPin);
-        nextBitTime = micros() + SampleTime;
+        SampleBits[i] = digitalRead(this->InputPin);
+        nextBitTime += SampleTime;
     }
 
-    for (int i = 0; i < numberOfBits; i++)
+    for (int i = 0; i < NumberOfBits; i++)
     {
-        for (int j = 0; j < numberOfSamples; j++)
+        for (int j = 0; j < NumberOfSamples; j++)
         {
-            Bits[i] += SampleBits[i * numberOfSamples + j];
+            Bits[i] += SampleBits[i * NumberOfSamples + j];
         }
         Bits[i] = (Bits[i] >= RequiredSampleThreshold);
     }
 }
 
-void Reset()
+void UART::Reset()
 {
-    sampleCount = 0;
-    for (int i = 0; i < numberOfBits; i++)
+    for (int i = 0; i < NumberOfBits; i++)
     {
         Bits[i] = 0;
     }
 
-    for (int i = 0; i < numberOfSamples; i++)
+    for (int i = 0; i < NumberOfSamples; i++)
     {
         SampleBits[i] = 0;
     }
-    
-    exportByte = -1;
 }
 
-bool CheckParity(int parityData)
+bool UART::CheckParity(int parityData)
 {
-    TOGGLE_LED;
-    return ((parityData + Bits[numberOfStartBits + numberOfDataBits]) % 2  == REQUESTED_PARITY);
+    return ((parityData + Bits[NumberOfStartBits + NumberOfDataBits]) % 2 == REQUESTED_PARITY);
 }
 
-void ValidateByte()
+bool UART::ValidateByte()
 {
     int parityData = 0;
 
-    if(Bits[0] != 0)
+    if (!ValidateStartBits())
     {
         Reset();
-        return;
+        return false;
     }
 
-    for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits - numberOfStopBits; i++)
+    if (!ValidateStopBits())
     {
-        if(Bits[i] != 1)
+        Reset();
+        return false;
+    }
+
+    if (NumberOfParityBits > 0)
+    {
+        parityData = PreCalculateParityData();
+        if (!CheckParity(parityData))
         {
             Reset();
-            return;
+            return false;
         }
     }
 
-    if(numberOfParityBits > 0)
-    {
-        for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
-        {
-            parityData += Bits[i];
-        }
-    }
-
-    for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits; i++)
-    {
-        if(Bits[i] != 1)
-        {
-            Reset();
-            Serial.print("Failed at: ");
-            Serial.println(i);
-            return;
-        }
-    }
-    
-    if(numberOfParityBits > 0)
-    {
-        if(!CheckParity(parityData))
-        {
-            Reset();
-            return;
-        }
-    }
-
-    
-
-    for (int i = numberOfStartBits; i < numberOfDataBits; i++)
-    {
-        exportByte += Bits[i] << (i - 1);
-    }
-
-    Serial.println((char)exportByte);
+    return true;
 }
 
-bool UART::Recieve(char &data)
+char UART::RetrieveData()
 {
-    if(CheckForStartBit())
+    int data = 0;
+    for (int i = NumberOfStartBits; i < NumberOfStartBits + NumberOfDataBits; i++)
+    {
+        data += Bits[i] << (i - NumberOfStartBits);
+    }
+    return (char)data;
+}
+
+bool UART::ValidateStartBits()
+{
+    if (Bits[0] != 0)
+    {
+        Reset();
+        return false;
+    }
+    return true;
+}
+
+bool UART::ValidateStopBits()
+{
+    for (int i = NumberOfStartBits + NumberOfDataBits + NumberOfParityBits; i < NumberOfBits - NumberOfStopBits; i++)
+    {
+        if (Bits[i] != 1)
+        {
+            Reset();
+            return false;
+        }
+    }
+    return true;
+}
+
+int UART::PreCalculateParityData()
+{
+    int parityData = 0;
+    for (int i = NumberOfStartBits; i < NumberOfStartBits + NumberOfDataBits; i++)
+    {
+        parityData += Bits[i];
+    }
+    return parityData;
+}
+
+bool UART::Receive(char &data)
+{
+    if (CheckForStartBit())
     {
         SampleByte();
-        ValidateByte();
-        if(exportByte != -1)
+        if (ValidateByte())
         {
-            data = (char)exportByte;
+            data = (char)RetrieveData();
             Reset();
             return true;
         }
@@ -172,64 +177,62 @@ bool UART::Recieve(char &data)
     return false;
 }
 
-void UART::Send(char data)
+void UART::Send(char data) // Absolute Spaghetti
 {
-  int outBoundData[numberOfBits] = {0};
-  int parityBit = 0;
+    int outBoundData[NumberOfBits] = {0};
+    int parityBit = 0;
 
-  outBoundData[0] = STARTBIT;
-  
-  for (int i = numberOfStartBits; i < numberOfStartBits + numberOfDataBits; i++)
-  {
-    outBoundData[i] = (data >> (i - numberOfStartBits)) & 1;
-  }
+    outBoundData[0] = STARTBIT;
 
-  if(numberOfParityBits > 0)
-  {
-    // Insert parity
-    
-    for (int i = numberOfStartBits; i < numberOfDataBits; i++)
+    for (int i = NumberOfStartBits; i < NumberOfStartBits + NumberOfDataBits; i++)
     {
-      parityBit += outBoundData[i];
+        outBoundData[i] = (data >> (i - NumberOfStartBits)) & 1;
     }
-    
-    #ifdef EVEN_PARITY
-    parityBit = parityBit % 2;
-    #endif
 
-    #ifdef ODD_PARITY
-    parityBit = (parityBit % 2) + 1;
-    #endif
-
-    for (int i = numberOfStartBits + numberOfDataBits; i < numberOfStartBits + numberOfDataBits + numberOfParityBits; i++)
+    if (NumberOfParityBits > 0)
     {
-      outBoundData[numberOfDataBits + i] = parityBit;
+        for (int i = NumberOfStartBits; i < NumberOfDataBits; i++)
+        {
+            parityBit += outBoundData[i];
+        }
+
+#ifdef EVEN_PARITY
+        parityBit = parityBit % 2;
+#endif
+
+#ifdef ODD_PARITY
+        parityBit = (parityBit % 2) + 1;
+#endif
+
+        for (int i = NumberOfStartBits + NumberOfDataBits; i < NumberOfStartBits + NumberOfDataBits + NumberOfParityBits; i++)
+        {
+            outBoundData[NumberOfDataBits + i] = parityBit;
+        }
     }
-  }
-  
-  // Needs a for loop to add the stop bits
-  for (int i = numberOfStartBits + numberOfDataBits + numberOfParityBits; i < numberOfBits; i++)
-  {
-    outBoundData[i] = STOPBIT;
-  }
 
-  unsigned long nextBitTime = micros();
-
-  for (int i = 0; i < numberOfBits; i++)
-  {
-    while(micros() < nextBitTime)
+    // Needs a for loop to add the stop bits
+    for (int i = NumberOfStartBits + NumberOfDataBits + NumberOfParityBits; i < NumberOfBits; i++)
     {
+        outBoundData[i] = STOPBIT;
     }
-    nextBitTime += TimePerBit;
-    digitalWrite(outputPin, outBoundData[i]);
-  }
 
-  for (int i = 0; i < numberOfBits; i++)
-  {
-    outBoundData[i] = 0;
-  }
-  
-  delay(1);
+    unsigned long nextBitTime = micros();
+
+    for (int i = 0; i < NumberOfBits; i++)
+    {
+        while (micros() < nextBitTime)
+        {
+        }
+        nextBitTime += TimePerBit;
+        digitalWrite(OutputPin, outBoundData[i]);
+    }
+
+    for (int i = 0; i < NumberOfBits; i++)
+    {
+        outBoundData[i] = 0;
+    }
+
+    delay(1);
 }
 
 void UART::Send(int data)

@@ -1,8 +1,10 @@
 #include <Arduino.h>
+#include "UART.hpp"
 
 #define MAX_DIGITAL_PINS 13
 #define MIN_DIGITAL_PINS 8
 #define MAX_ANALOG_PINS 5
+#define SAMPLES 1
 #define BAUDRATE 9600
 
 #define UART_
@@ -11,8 +13,7 @@
 #define INPUT_PIN 2
 #define OUTPUT_PIN 3
 
-#include "UART.hpp"
-UART uart(BAUDRATE,INPUT_PIN,OUTPUT_PIN);
+UART uart(BAUDRATE,INPUT_PIN,OUTPUT_PIN,SAMPLES);
 #endif
 
 void PrintOptions();
@@ -118,10 +119,10 @@ char data;
 void loop() {
   // put your main code here, to run repeatedly:
   #ifdef UART_
-  if(uart.Recieve(data))
+  if(uart.Receive(data))
   {
     Serial.print(data);
-    Menu((MenuChoices)(data + 1));
+    Menu((MenuChoices)(data));
   }
   #else
   if(Serial.available())
