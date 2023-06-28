@@ -278,18 +278,16 @@ While there is always room in the buffer, the buffer has been initialized to 0. 
 
 ![9600 Baud Proof](./Receiver_Pictures/9600_Proof.png)
 
-<!-- TODO: Spellcheck :) -->
-
 This proved that my 8n1 configuration worked.
 
-After a fair bit of deliberation regarding how I could best show evidence regarding my ASCII Terminal and per extension, my receiver, I managed to capture footage using GIFS, which are included in the `Receiver Pictures` Folder. These GIFS showcase the various configurations I have managed to support using my receiver. Inside, you will find
+After a fair bit of deliberation regarding how I could best show evidence regarding my ASCII Terminal and per extension, my receiver, I managed to capture footage using GIFS, which are included in the `Receiver Pictures` Folder. These GIFS showcase the various configurations I have managed to support using my receiver. Inside, you will find:
 
 - `7 Data bits`
 - `Odd Parity`
-- `Even Partity`
+- `Even Parity`
 - `Two Stop Bits`
 
-With these gifs, I hope to show that my receiver works according to the requirements.
+With these gifs, I hope to show that my receiver works according to the requirements, alongside the demo given on the 27th of June.
 
 ## Conclusion
 
