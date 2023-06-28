@@ -93,13 +93,14 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
   // ES Course Comments: Uncomment the three lines below to enable FreeRTOS.
-  osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
-  osKernelStart(); /* Start scheduler */
+  // osKernelInitialize(); /* Call init function for freertos objects (in freertos.c) */
+  // MX_FREERTOS_Init();
+  // osKernelStart(); /* Start scheduler */
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */

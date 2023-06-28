@@ -1,5 +1,7 @@
 #include "timer.hpp"
 
+#include "timer.hpp"
+
 Timer::Timer(TIM_TypeDef *timer)
 {
     this->timer = timer;
@@ -28,15 +30,15 @@ void Timer::EnableAsPWMOutput(PWMOutputPackage package)
     SetPrescaler(package.prescaler);
     SetLimit(package.limit);
 
-    SetOutputCaptureChannel(package.channel, package.type);
-    SetOutputCompareMode(package.ocm);
+    SetOutputCaptureChannel(package.channel, package.ocm);
+    SetOutputCompareMode();
     SetCaptureCompareValue(package.dutyCycle);
     SetCaptureCompareOutput(package.channel, 0x1);
 
     Enable();
 }
 
-void Timer::EnableAsPWMInput(PWMInputPackage package)
+void Timer::EnableAsPWMInput(BasicTimerPackage package)
 {
     ToggleClock(package.bit);
     SetPrescaler(package.prescaler);
@@ -104,7 +106,7 @@ void Timer::SetExternalClockMode()
     timer->SMCR |= TIM_SMCR_ECE;
 }
 
-void Timer::SetOutputCaptureChannel(uint16_t channel, CC_ChannelType type)
+void Timer::SetOutputCaptureChannel(uint16_t channel, OCM_Type type)
 {
     timer->CCMR1 = (timer->CCMR1 & ~TIM_CCMR1_OC1M_Msk) | (type << channel * 4);
 }
@@ -114,9 +116,9 @@ void Timer::SetInputCaptureChannel(uint16_t channel, CC_ChannelType type)
     timer->CCMR1 = (timer->CCMR1 & ~TIM_CCMR1_CC1S_Msk) | (type << channel * 4);
 }
 
-void Timer::SetOutputCompareMode(OCM_Type type)
+void Timer::SetOutputCompareMode()
 {
-    timer->CCMR1 |= (type << 4);
+    timer->CCER = (timer->CCER & ~TIM_CCER_CC1E_Msk) | ( 0x1 << TIM_CCER_CC1E_Pos);
 }
 
 void Timer::SetCaptureCompareValue(uint16_t value)
@@ -140,7 +142,17 @@ void Timer::ResetInterrupt()
     timer->SR &= ~TIM_SR_UIF;
 }
 
+void Timer::SendPWMSignal(int signal)
+{
+    timer->CCR1 = signal;
+}
+
 void Timer::Enable()
 {
     timer->CR1 |= TIM_CR1_CEN;
+}
+
+int Timer::GetPWMInput()
+{
+    return timer->CCR2;
 }

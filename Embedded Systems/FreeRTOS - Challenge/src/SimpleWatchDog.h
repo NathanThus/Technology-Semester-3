@@ -4,7 +4,7 @@
 #include "stm32f3xx.h"
 
 /// @brief Prescaler value, which when combined with RLR_SECOND gives a 1 second timeout
-#define PSC_SECOND 6
+#define SWD_PSC_SECOND 6
 /// @brief RLR value for 1 second. Only works with PSC_SECOND
 #define RLR_SECOND 2500
 

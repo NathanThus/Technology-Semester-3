@@ -135,7 +135,7 @@ void BreadBaker::HandleState_S_ProgramSelection(Events ev)
 
         currentState = S_RESTING;
         display.SetCurrentTask(Tasks::WAITING);
-        int minutes = selectedProgram.resting + selectedProgram.kneading + selectedProgram.rising + selectedProgram.baking;
+        int minutes = selectedProgram.Resting + selectedProgram.kneading + selectedProgram.rising + selectedProgram.baking;
         // Convert minutes to hours and minutes
         int hours = minutes / 60;
         minutes = minutes % 60;
@@ -206,7 +206,7 @@ void BreadBaker::HandleState_S_Resting(Events ev)
 {
     if (ev == TIMER_TIMEOUT && isDelayTimer)
     {
-        timer.Set(selectedProgram.resting);
+        timer.Set(selectedProgram.Resting);
         isDelayTimer = false;
     }
 

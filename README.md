@@ -19,7 +19,6 @@ Development on STM32F303 development boards.
 ### C++
   - Object Oriented Programming
   - Pointers & References
-  - Multi-Threading
   - Memory Management
 
 ### C
