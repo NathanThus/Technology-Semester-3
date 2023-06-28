@@ -1,6 +1,6 @@
 # Technology-Semester-3
 
-This is the general repository used for my 3rd Semester at fontys.
+This is the general repository used for my 3rd Semester at fontys. This project is officially closed as of 28/06/2023.
 
 ## Embedded Systems
 Development on STM32F303 development boards.
