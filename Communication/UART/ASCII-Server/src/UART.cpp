@@ -15,6 +15,7 @@
 
 // Timing
 const long MicroSecondsPerSecond = 1000000;
+const int CollisionDelay = 1;
 
 // Data Bits - Could do some presets with defines, but at this stage of the project, no thanks
 const int NumberOfDataBits = 8;
@@ -254,7 +255,7 @@ void UART::Send(char data)
     }
 
     Reset();
-    delay(1); // Avoid Data Collision
+    delay(CollisionDelay);
 }
 
 void UART::Send(int data)
